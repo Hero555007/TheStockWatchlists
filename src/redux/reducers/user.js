@@ -2,6 +2,7 @@ const initState = {
     username: "",
     useremail : "",
     userimage : "",
+    userrole:"",
     alertflag : "none",
     alertsymbol : "",
     token :"",
@@ -18,6 +19,7 @@ const user = (state={...initState}, action) => {
                 username: action.payload.username,
                 useremail : action.payload.useremail,
                 userimage : action.payload.userimage,
+                userrole : action.payload.userrole,
             }
         case 'SET_ALERT':
             console.log("ALERT",action.payload)

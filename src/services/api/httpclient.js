@@ -9,16 +9,41 @@ const deletewatchlistPath = 'api/deletewatchlist'
 const updatewatchlistPath = 'api/updatewatchlist'
 const getwatchlistPath = 'api/getwatchlist'
 const changeviewstatusPath = 'api/changeviewstatus'
-const globalwatchlistPath = 'api/globalwatchlist'
 const getcurrentstockpricePath = 'api/currentprice'
 const savewatchlisttemplatePath = 'api/importwatchlisttemplate'
 const getwatchlisttemplatePath = 'api/getwatchlisttemplate'
 const updatewatchlisttemplatePath = 'api/updatewatchlisttemplate'
 const updateprofilePath = 'api/updateprofile'
+const validwatchlistPath = 'api/validwatchlist'
+const getuserdataPath = 'api/getuserdata'
+const savesharewatchlisttemplatePath = 'api/importsharewatchlisttemplate'
+const getsharewatchlisttemplatePath = 'api/getsharewatchlisttemplate'
+const updatesharewatchlisttemplatePath = 'api/updatesharewatchlisttemplate'
+const getglobalwatchlistPath = 'api/getglobalwatchlist'
 
 export function signup(data){
     return new Promise((resolve,reject) =>
         post(signupPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function validwatchlist(data){
+    return new Promise((resolve,reject) =>
+        post(validwatchlistPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getuserdata(data){
+    return new Promise((resolve,reject) =>
+        post(getuserdataPath, data, false).then((resp) => {
             resolve(resp);       
         }).catch(err => {
             reject(err); // not provide internal server error
@@ -127,9 +152,9 @@ export function changeViewStatus(data){
     );
 }
 
-export function globalWatchlist(data){
+export function getglobalWatchlist(){
     return new Promise((resolve,reject) =>
-        post(globalwatchlistPath, data, false).then((resp) => {
+        get(getglobalwatchlistPath, false).then((resp) => {
             resolve(resp);        
         }).catch(err => {
             reject(err); // not provide internal server error
@@ -160,6 +185,36 @@ export function getwatchlisttemplate(data){
 export function updatewatchlisttemplate(data){
     return new Promise((resolve,reject) =>
         post(updatewatchlisttemplatePath, data, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function savesharewatchlisttemplate(data){
+    return new Promise((resolve,reject) =>
+        post(savesharewatchlisttemplatePath, data, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getsharewatchlisttemplate(data){
+    return new Promise((resolve,reject) =>
+        post(getsharewatchlisttemplatePath, data, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function updatesharewatchlisttemplate(data){
+    return new Promise((resolve,reject) =>
+        post(updatesharewatchlisttemplatePath, data, false).then((resp) => {
             resolve(resp);        
         }).catch(err => {
             reject(err); // not provide internal server error

@@ -5,7 +5,7 @@ import moment from 'moment';
 import { makeStyles } from '@material-ui/styles';
 import { connect } from "react-redux";
 import { post } from 'axios';
-import {updateprofile} from './../../../../services/api/httpclient';
+import {updateprofile, getuserdata} from './../../../../services/api/httpclient';
 import {
   Card,
   CardActions,
@@ -17,6 +17,7 @@ import {
   LinearProgress
 } from '@material-ui/core';
 import { setUserName } from 'redux/actions';
+import { createDefaultClause } from 'typescript';
 
 
 const mapStateToProps = state => {
@@ -52,12 +53,22 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const AccountProfile = props => {
-  const { className,username, userimage, useremail, dispatch, setusername, ...rest } = props;
+  const { className,username, userimage, useremail, dispatch, setusername, datas, ...rest } = props;
 
   const classes = useStyles();
   const [userName, setUserName] = React.useState("");
   const [userEmail, setUserEmail] = React.useState("");
   const [userImage, setUserImage] = React.useState("");
+  const [image, setImage] = React.useState({ preview: "", raw: "" });
+  const [percentValue, setPercentValue] = React.useState(0);
+  const [user, setUser]= React.useState({
+    name: userName,
+    city: 'Alabama',
+    country: 'USA',
+    timezone: 'GTM+3',
+    avatar: userImage
+  });
+
   React.useEffect(()=>{
     if (username == "")
     {
@@ -75,15 +86,40 @@ const AccountProfile = props => {
       setUserImage("avatar_man.png")
     }
   },[]);
+  
+  React.useEffect(()=>{
+    if (userEmail == ""){
+      return;
+    }
+    const payload1 = {
+      "useremail" : userEmail,
+    }
+    getuserdata(payload1).then((ret)=>{
+      if (ret['data']['result'] == 'ok'){
+        console.log("userdata", ret['data']['data']);
+        setPercentValue(ret['data']['data']['profilecompletepercent']);
+        if (ret['data']['data']['avatar'] == ""){
+          setUserImage("/images/avatars/avatar_man.png");
+        }
+        else{
+          setUserImage(ret['data']['data']['avatar']);
+        }
+        setUser(ret['data']['data']);
+      }
+    });
+  },[userEmail]);
 
-  const user = {
-    name: userName,
-    city: 'Alabama',
-    country: 'USA',
-    timezone: 'GTM-7',
-    avatar: '/images/avatars/' + userImage
-  };
-  const [image, setImage] = React.useState({ preview: "", raw: "" });
+  React.useEffect(()=>{
+    setPercentValue(datas['profilecompletepercent']);
+    if (datas['avatar'] == ""){
+      setUserImage("/images/avatars/avatar_man.png");
+    }
+    else{
+      setUserImage(datas['avatar']);
+    }
+    setUser(datas);
+  },[datas]);
+
   const handleChange = e => {
     if (e.target.files.length) {
       setImage({
@@ -115,7 +151,8 @@ const AccountProfile = props => {
       }
       updateprofile(payload).then( ret=>{
         if (ret['data'].result == 'ok'){
-          console.log("picture", payload['avatarurl'])
+          setPercentValue(ret['data']['percentValue']);
+          console.log("picture", payload['avatarurl']);
           localStorage.setItem('userimage', payload['avatarurl']);
           setusername(userName, userEmail, payload['avatarurl']);
         }
@@ -160,7 +197,7 @@ const AccountProfile = props => {
               color="textSecondary"
               variant="body1"
             >
-              {moment().format('hh:mm A')} ({user.timezone})
+              {moment().format('hh:mm A')} (GTM+3)
             </Typography>
           </div>
           <label htmlFor="upload-button" className={classes.filelable}>
@@ -184,9 +221,9 @@ const AccountProfile = props => {
           />          
         </div>
         <div className={classes.progress}>
-          <Typography variant="body1">Profile Completeness: 70%</Typography>
+          <Typography variant="body1">Profile Completeness: {percentValue}%</Typography>
           <LinearProgress
-            value={70}
+            value={percentValue}
             variant="determinate"
           />
         </div>
@@ -201,7 +238,6 @@ const AccountProfile = props => {
         >
           Upload picture
         </Button>
-        <Button variant="text">Remove picture</Button>
       </CardActions>
     </Card>
   );

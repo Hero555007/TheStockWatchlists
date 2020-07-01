@@ -71,7 +71,7 @@ const useStyles = makeStyles(theme => ({
 
 const TradingMainViewWidget = (props) => {
   const classes = useStyles();
-  const { className, handleSidebarOpen,handleSidebarClose,openSidebar,...rest } = props;
+  const { className, handleSidebarOpen,handleSidebarClose,openSidebar, symbol, ...rest } = props;
 
   
   useLayoutEffect(() => {
@@ -87,7 +87,7 @@ const TradingMainViewWidget = (props) => {
     <div className={classes.root}>
       <div className={classes.middleSide}>
         <div className={classes.middleSubSide}>
-            <TradingWidget openSidebar={openSidebar}/>
+            <TradingWidget openSidebar={openSidebar} symbol={symbol}/>
         </div>
         {/* <div style={{cursor: "url(./trino/images/cursor.png)10 15 ,auto", backgroundColor: '#337dff',width: '3px', borderLeft: '1px solid #2450a5', borderRight: '1px solid #2450a5'}}/> */}
 

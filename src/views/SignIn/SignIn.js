@@ -186,7 +186,8 @@ const SignIn = props => {
         localStorage.setItem('access_token', ret['data']['access_token']);
         localStorage.setItem('username', ret['data']['name']);
         localStorage.setItem('useremail', ret['data']['email']);
-        dispatch(setUserName(ret['data']['name'], ret['data']['email'], ret['data']['image']));
+        localStorage.setItem('userrole', "2");
+        dispatch(setUserName(ret['data']['name'], ret['data']['email'], ret['data']['image'],ret['data']['role']));
         dispatch(setUserToken(ret['data']['access_token']));
         history.push({
           pathname :'/dashboard',

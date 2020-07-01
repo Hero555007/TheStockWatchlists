@@ -25,8 +25,6 @@ const useStyles = makeStyles(theme => ({
     height : '100%',
     width: '100%',
     padding: '0px',
-    display: 'flex',
-    
   },
   toggleIcon: {
     fontFamily: "Roboto-Medium",
@@ -133,9 +131,6 @@ const TimeIntervalPanel = props => {
   );
   const classes = useStyles();
   const [timevalue, setTimeValue] = React.useState(6);
-  const [datavalue, setDataValue] = React.useState(0);
-  const [timeDatavalue, setTimeDataValue] = React.useState('42');
-  const [timeIntervalTypeVal, setTimeIntervalTypeVal] = React.useState(0);
   const handleChanged = (event, newAlignment) => {
     if (newAlignment !== null) {
       setTimeValue(newAlignment);
@@ -143,28 +138,7 @@ const TimeIntervalPanel = props => {
       console.log("timevalues", timeValues[newAlignment].value);
     }
   };
-  const handleDataChanged = (event, newAlignment) => {
-    if (newAlignment !== null) {
-      setDataValue(newAlignment);
-      tabChanged(newAlignment)
-    }
-  };
-  const handleTimeValueChange = (event, newAlignment) => {
-    if (newAlignment !== null) {
-      setTimeDataValue(newAlignment);
-    }
-  };
-  const handleTimeIntervalChange = (event, newAlignment) => {
-    if (newAlignment !== null) {
-      setTimeIntervalTypeVal(newAlignment);
-    }
-  };
-  const timeOptions = [
-    { value: 0, label: "Hours" },
-    { value: 1, label: "Minutes" },
-    { value: 2, label: "Seconds" },
-    
-  ];
+
   return (
     <div
       {...rest}

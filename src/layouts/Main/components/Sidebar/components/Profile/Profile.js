@@ -5,10 +5,11 @@ import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Avatar, Typography } from '@material-ui/core';
 import { connect } from "react-redux";
+import {getuserdata} from '../../../../../../services/api/httpclient';
 
 
 const mapStateToProps = state => {
-  return { username:state.user.username, userimage:state.user.userimage};
+  return { useremail:state.user.useremail, userimage:state.user.userimage};
 };
 
 function mapDispatchToProps(dispatch) {
@@ -33,33 +34,41 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Profile = props => {
-  const { className,username, userimage, ...rest } = props;
+  const { className, useremail, userimage, ...rest } = props;
 
+  const [userEmail, setUserEmail] = React.useState("");
   const classes = useStyles();
-  const [userName, setUserName] = React.useState("");
-  const [userImage, setUserImage] = React.useState("");
-  React.useEffect(()=>{
-    if (username == "")
+  const [user, setUser] = React.useState(
     {
-      setUserName(localStorage.getItem('username'));
-      setUserImage(localStorage.getItem('userimage'));
+      name: "",
+      avatar: '/images/avatars/avatar_man.png',
+      bio: 'Top trader'
+    }
+  )
+  React.useEffect(()=>{
+    if (useremail == "")
+    {
+      setUserEmail(localStorage.getItem('useremail'));
     }
     else{
-      setUserName(username);
-      setUserImage(userimage);
+      setUserEmail(useremail);
     }  
-    if (userimage == "")
-    {
-      setUserImage("avatar_man.png")
-    }
   },[]);
 
-
-  const user = {
-    name: userName,
-    avatar: '/images/avatars/' + userImage,
-    bio: 'Top trader'
-  };
+  React.useEffect(()=>{
+    if (userEmail == ""){
+      return;
+    }
+    const payload1 = {
+      "useremail" : userEmail,
+    }
+    getuserdata(payload1).then((ret)=>{
+      if (ret['data']['result'] == 'ok'){
+        console.log("profileuserdata", ret['data']['data']);
+        setUser(ret['data']['data']);
+      }
+    });
+  },[userEmail, userimage]);
 
   return (
     <div

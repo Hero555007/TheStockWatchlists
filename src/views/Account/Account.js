@@ -12,7 +12,12 @@ const useStyles = makeStyles(theme => ({
 
 const Account = () => {
   const classes = useStyles();
+  const [datas, setDatas] = React.useState({});
 
+  const updatedata=(data)=>{
+    console.log("profilechange", data);
+    setDatas(data);
+  };
   return (
     <div className={classes.root}>
       <Grid
@@ -26,7 +31,7 @@ const Account = () => {
           xl={4}
           xs={12}
         >
-          <AccountProfile />
+          <AccountProfile datas={datas}/>
         </Grid>
         <Grid
           item
@@ -35,7 +40,7 @@ const Account = () => {
           xl={8}
           xs={12}
         >
-          <AccountDetails />
+          <AccountDetails  onUpdate={updatedata}/>
         </Grid>
         {/* <Grid
           item

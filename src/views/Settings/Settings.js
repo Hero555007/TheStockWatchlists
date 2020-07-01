@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
-import { Notifications, ImportWatchlistTemplate } from './components';
+import { WatchlistTemplate, ShareWatchlistTemplate } from './components';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -21,10 +21,17 @@ const Settings = () => {
       >
         <Grid
           item
-          md={7}
+          md={6}
           xs={12}
         >
-          <Notifications />
+          <WatchlistTemplate />
+        </Grid>
+        <Grid
+          item
+          md={6}
+          xs={12}
+        >
+          <ShareWatchlistTemplate />
         </Grid>
       </Grid>
     </div>

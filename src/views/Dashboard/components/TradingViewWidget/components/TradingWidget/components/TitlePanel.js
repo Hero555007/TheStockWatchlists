@@ -35,7 +35,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const TitlePanel = props => {
-  const { className,symbolname, ...rest } = props;
+  const { className,symbolname, symbol, ...rest } = props;
 
   const classes = useStyles();
   const [row, setRow] = React.useState({profit: 2.06});
@@ -48,14 +48,14 @@ const TitlePanel = props => {
         <div style={{padding: '0px', paddingLeft: '5px', display:'flex'}}>
           <div style={{display:'flex', justifyContent: 'center'}}>
             <img
-              src={"https://financialmodelingprep.com/image-stock/" + symbolname + ".jpg"}
+              src={"https://financialmodelingprep.com/image-stock/" + symbol + ".jpg"}
               width = '24px'
               height = '25px'
               style={{margin:'7px', textAlign: 'center'}}
             />
           </div>
           <div style={{display:'flex', justifyContent: 'center', alignItems: 'center', marginLeft: '5px'}}>
-            <span style={{fontFamily: "Roboto-Bold",fontSize: '14.22pt',color: 'white',}}>{symbolname}</span>
+            <span style={{fontFamily: "Roboto-Bold",fontSize: '14.22pt',color: 'white',}}>{symbol}</span>
           </div>
         </div>
     </div>

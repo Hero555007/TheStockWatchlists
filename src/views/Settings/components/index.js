@@ -1,2 +1,2 @@
-export { default as ImportWatchlistTemplate } from './ImportWatchlistTemplate';
-export { default as Notifications } from './Notifications';
+export { default as WatchlistTemplate } from './WatchlistTemplate';
+export { default as ShareWatchlistTemplate } from './ShareWatchlistTemplate';

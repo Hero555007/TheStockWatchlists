@@ -1,61 +1,110 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { IconButton, Grid, Typography } from '@material-ui/core';
-import ChevronRightIcon from '@material-ui/icons/ChevronRight';
-import ChevronLeftIcon from '@material-ui/icons/ChevronLeft';
-
-import { ProductsToolbar, ProductCard } from './components';
-import mockData from './data';
+import { Grid } from '@material-ui/core';
+import {getglobalWatchlist} from '../../services/api/httpclient';
+import {
+  EarningReportStocks,
+  MostFollowedUsers,
+  DirectionofTraders,
+  TopStocks,
+  TopStocksforShort,
+  TopStocksforLong,
+  UsersToolbar,
+  Watchlist
+} from './components';
 
 const useStyles = makeStyles(theme => ({
   root: {
-    padding: theme.spacing(3)
+    padding: theme.spacing(4)
   },
   content: {
     marginTop: theme.spacing(2)
-  },
-  pagination: {
-    marginTop: theme.spacing(3),
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'flex-end'
   }
 }));
 
 const ProductList = () => {
   const classes = useStyles();
 
-  const [products] = useState(mockData);
+  const [products, setProducts] = useState([]);
+
+  React.useEffect(()=>{
+    getglobalWatchlist().then(ret=>{
+      if (ret['data']['result'] == 'ok'){
+        
+      }
+    })
+  },[]);
 
   return (
     <div className={classes.root}>
-      <ProductsToolbar />
+      <UsersToolbar />
       <div className={classes.content}>
         <Grid
           container
-          spacing={3}
+          spacing={4}
         >
-          {products.map(product => (
+          <Grid
+            item
+            lg={6}
+            md={12}
+            xl={6}
+            xs={12}
+          >
+            <MostFollowedUsers />
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            md={6}
+            xl={3}
+            xs={12}
+          >
+            <EarningReportStocks />
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            md={6}
+            xl={3}
+            xs={12}
+          >
+            <TopStocks />
+          </Grid>
+          <Grid
+            item
+            lg={9}
+            md={12}
+            xl={9}
+            xs={12}
+          >
+            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
+            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
+            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
+            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
+          </Grid>
+          <Grid
+            item
+            lg={3}
+            md={12}
+            xl={3}
+            xs={12}
+          >
             <Grid
-              item
-              key={product.id}
-              lg={4}
-              md={6}
+              lg={12}
+              md={12}
+              xl={12}
               xs={12}
+              container
+              direction="column"
+              justify="space-between"
+              alignItems="flex-end"
             >
-              <ProductCard product={product} />
+              <DirectionofTraders />
+              <TopStocksforShort />
+              <TopStocksforLong />
             </Grid>
-          ))}
+          </Grid>
         </Grid>
-      </div>
-      <div className={classes.pagination}>
-        <Typography variant="caption">1-6 of 20</Typography>
-        <IconButton>
-          <ChevronLeftIcon />
-        </IconButton>
-        <IconButton>
-          <ChevronRightIcon />
-        </IconButton>
       </div>
     </div>
   );

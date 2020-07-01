@@ -193,6 +193,7 @@ const SignUp = props => {
       "lastName" : formState.values.lastName,
       "email": formState.values.email,
       "password": formState.values.password,
+      "role": "2",
     }
     signup(payload).then( ret=>{
       if (ret['data'].result == 'ok'){

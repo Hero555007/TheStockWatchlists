@@ -26,6 +26,9 @@ const Topbar = props => {
   const classes = useStyles();
 
   const [notifications] = useState([]);
+  const onSignOut=(event)=>{
+    localStorage.clear();
+  }
 
   return (
     <AppBar
@@ -33,7 +36,7 @@ const Topbar = props => {
       className={clsx(classes.root, className)}
     >
       <Toolbar>
-        <RouterLink to="/">
+        <RouterLink to="/dashboard" style={{color: 'inherit'}}>
           <img
             alt="Logo"
             src="/images/logos/logo.png"
@@ -42,7 +45,6 @@ const Topbar = props => {
           />
         </RouterLink>
         <div className={classes.flexGrow} />
-        <Hidden mdDown>
           <IconButton color="inherit">
             <Badge
               badgeContent={notifications.length}
@@ -52,13 +54,15 @@ const Topbar = props => {
               <NotificationsIcon />
             </Badge>
           </IconButton>
-          <IconButton
-            className={classes.signOutButton}
-            color="inherit"
-          >
-            <InputIcon />
-          </IconButton>
-        </Hidden>
+          <RouterLink to='/sign-in' style={{color: 'inherit'}} >
+            <IconButton
+              className={classes.signOutButton}
+              onClick={onSignOut}
+              color="inherit"
+            >
+              <InputIcon />
+            </IconButton>
+          </RouterLink>
         <Hidden lgUp>
           <IconButton
             color="inherit"

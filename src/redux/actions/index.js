@@ -15,12 +15,13 @@ export function setPageType(payload){
     return { type: CURRENT_PAGE_TYPE, payload }
 }
 
-export const setUserName = (username, useremail, userimage) =>({
+export const setUserName = (username, useremail, userimage, userrole) =>({
     type: USER_NAME, 
     payload: {
         username, 
         useremail,
         userimage,
+        userrole,
     }
 })
 

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import {savewatchlisttemplate, getwatchlisttemplate, updatewatchlisttemplate} from '../../../../services/api/httpclient';
+import {savesharewatchlisttemplate, getsharewatchlisttemplate, updatesharewatchlisttemplate} from '../../../../services/api/httpclient';
 import {changeDashboardType } from '../../../../redux/actions';
 import { connect } from "react-redux";
 import { NavLink as RouterLink } from 'react-router-dom';
@@ -36,8 +36,8 @@ const useStyles = makeStyles(() => ({
   }
 }));
 
-const Notifications = props => {
-  const { className,username, useremail,dispatch,changeDashboardType,history, ...rest } = props;
+const ShareWatchlistTemplate = props => {
+  const { className, username, useremail, dispatch, changeDashboardType, history, ...rest } = props;
 
   const [userName, setUserName] = React.useState("");
   const [userEmail, setEmail] = React.useState("");
@@ -82,7 +82,8 @@ const Notifications = props => {
     {id : 17, name:"addedprice", label:"Initial Price", flag:false, checked:false},
     {id : 18, name:"addedpricechange", label:"Change(%)", flag:false, checked:false},
     {id : 19, name:"dateadded", label:"Date Added", flag:false, checked:true},
-    {id : 20, name:"comment", label:"Comment", flag:false, checked:false}
+    {id : 20, name:"comment", label:"Comment", flag:false, checked:false},
+    {id : 21, name:"tradescore", label:"TradeScore", flag:false, checked:false}
   ]);
 
   React.useEffect(()=>{
@@ -94,7 +95,7 @@ const Notifications = props => {
         "username" : userName,
         "useremail" : userEmail,
     }
-    getwatchlisttemplate(payloadforget).then(ret=>{
+    getsharewatchlisttemplate(payloadforget).then(ret=>{
         if(ret.data.result == 'ok')
         {
             setInitialFlag(false);
@@ -161,7 +162,10 @@ const Notifications = props => {
                     else if(item.name == "comment"){
                         item.checked = ret.data.data.comment;
                     }
-                    
+                    else if(item.name == "tradescore"){
+                      item.checked = ret.data.data.tradescore;
+                  }
+                  
                     return [item];    
                 });
                 return datas;
@@ -174,10 +178,6 @@ const Notifications = props => {
   },[userName, userEmail]);
 
   const onOK=() => {
-    let payloadforget={
-        "username" : userName,
-        "useremail" : userEmail,
-    }
     if(initialflag == true)
     {
         let payload ={
@@ -194,7 +194,7 @@ const Notifications = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
-        savewatchlisttemplate(payload).then( ret=>{
+        savesharewatchlisttemplate(payload).then( ret=>{
             if (ret['data'].result == 'ok'){
                 changeDashboardType({dashboard_type:0});
             }
@@ -221,7 +221,7 @@ const Notifications = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
-        updatewatchlisttemplate(payload).then( ret=>{
+        updatesharewatchlisttemplate(payload).then( ret=>{
             if (ret['data'].result == 'ok'){
             }
             else if(ret['data'].result == 'fail'){
@@ -261,8 +261,8 @@ const Notifications = props => {
     >
       <form>
         <CardHeader
-          subheader="Manage the watchlist view"
-          title="Import Watchlist Template"
+          subheader="Manage the watchlist view to share"
+          title="Share Watchlist Template"
         />
         <Divider />
         <CardContent>
@@ -334,7 +334,7 @@ const Notifications = props => {
         </CardContent>
         <Divider />
         <CardActions>
-          <RouterLink to="/dashboard">
+          <RouterLink to="/products">
             <Button
               color="primary"
               variant="outlined"
@@ -349,8 +349,8 @@ const Notifications = props => {
   );
 };
 
-Notifications.propTypes = {
+ShareWatchlistTemplate.propTypes = {
   className: PropTypes.string
 };
 
-export default connect(mapStateToProps,mapDispatchToProps)(Notifications);
+export default connect(mapStateToProps,mapDispatchToProps)(ShareWatchlistTemplate);

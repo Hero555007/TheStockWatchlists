@@ -32,12 +32,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const TradingWidget = props => {
-  const { className, openSidebar, drawer_opened, ...rest } = props;
+  const { className, openSidebar, drawer_opened, symbol, ...rest } = props;
 
   const classes = useStyles();
   const [value, setValue] = React.useState(0);
   const mRef1 = useRef(null);
   const handleChange = (newValue) => {
+    console.log("newvalue", newValue);
       setValue(newValue);
     };
   useLayoutEffect(() => {
@@ -52,12 +53,12 @@ const TradingWidget = props => {
       {...rest}
       className={clsx(classes.root, className)}
       >
-      <TitlePanel style={{height: '50px', minHeight: '50px'}}/>
+      <TitlePanel style={{height: '50px', minHeight: '50px'}} symbol={symbol} />
       <TimeIntervalPanel openSidebar={openSidebar} tabChanged={handleChange} style={{height: '35px'}}/>
         <TabPanel value={value} index={0} style={{ height: '100%', }}>
           <div style={{height: '100%', width: '100%', display: 'flex', flexDirection: 'column'}} ref={mRef1} >
             <div style={{flexGrow: 1,}}>
-              <TradingChartPanel drawer_opened={drawer_opened}/>
+              <TradingChartPanel drawer_opened={drawer_opened} symbol={symbol} />
             </div>
           </div>
         </TabPanel>
