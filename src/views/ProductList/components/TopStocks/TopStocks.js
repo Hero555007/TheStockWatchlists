@@ -6,27 +6,23 @@ import {
   Card,
   CardHeader,
   CardContent,
-  CardActions,
   Button,
   Divider,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  IconButton
 } from '@material-ui/core';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import ArrowLeftIcon from '@material-ui/icons/ArrowLeft';
-
-import mockData from './data';
 
 const useStyles = makeStyles(() => ({
   root: {
     height: '100%'
   },
   content: {
-    padding: 0
+    padding: 0,
+    maxHeight:"350px",
+    minHeight:"350px",
+    overflowY:'scroll'
   },
   image: {
     height: 48,
@@ -38,11 +34,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const TopStocks = props => {
-  const { className, ...rest } = props;
+  const { className, stocks, ...rest } = props;
 
   const classes = useStyles();
 
-  const [products] = useState(mockData);
+  // const [stocks] = useState(mockData);
 
   return (
     <Card
@@ -50,15 +46,15 @@ const TopStocks = props => {
       className={clsx(classes.root, className)}
     >
       <CardHeader
-        subtitle={`${products.length} in total`}
+        subtitle={`${stocks.length} in total`}
         title="Top Stocks of our site"
       />
       <Divider />
       <CardContent className={classes.content}>
         <List>
-          {products.map((product, i) => (
+          {stocks.map((product, i) => (
             <ListItem
-              divider={i < products.length - 1}
+              divider={i < stocks.length - 1}
               key={product.id}
             >
               <ListItemAvatar>
@@ -78,7 +74,7 @@ const TopStocks = props => {
         </List>
       </CardContent>
       <Divider />
-      <CardActions className={classes.actions}>
+      {/* <CardActions className={classes.actions}>
         <Button
             color="primary"
             size="small"
@@ -93,7 +89,7 @@ const TopStocks = props => {
         >
           Next <ArrowRightIcon />
         </Button>
-      </CardActions>
+      </CardActions> */}
     </Card>
   );
 };

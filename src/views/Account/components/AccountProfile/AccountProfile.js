@@ -17,7 +17,12 @@ import {
   LinearProgress
 } from '@material-ui/core';
 import { setUserName } from 'redux/actions';
-import { createDefaultClause } from 'typescript';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+import AddIcon from '@material-ui/icons/Add';
+import Fab from '@material-ui/core/Fab';
+import Tooltip from '@material-ui/core/Tooltip';
 
 
 const mapStateToProps = state => {
@@ -36,10 +41,11 @@ const useStyles = makeStyles(theme => ({
   },
   avatar: {
     marginLeft: 'auto',
-    height: 110,
+    height: 100,
     width: 100,
     flexShrink: 0,
-    flexGrow: 0
+    flexGrow: 0,
+    cursor:'pointer'
   },
   filelable:{
     marginLeft: 'auto',
@@ -49,7 +55,11 @@ const useStyles = makeStyles(theme => ({
   },
   uploadButton: {
     marginRight: theme.spacing(2)
-  }
+  },
+  fab: {
+    marginLeft: 'auto',
+    margin: theme.spacing(2)
+  },
 }));
 
 const AccountProfile = props => {
@@ -70,7 +80,7 @@ const AccountProfile = props => {
   });
 
   React.useEffect(()=>{
-    if (username == "")
+    if (username === "")
     {
       setUserName(localStorage.getItem('username'));
       setUserEmail(localStorage.getItem('useremail'));
@@ -81,24 +91,24 @@ const AccountProfile = props => {
       setUserEmail(useremail);
       setUserImage(userimage);
     }  
-    if (userimage == "")
+    if (userimage === "")
     {
       setUserImage("avatar_man.png")
     }
-  },[]);
+  },[username, useremail, userimage]);
   
   React.useEffect(()=>{
-    if (userEmail == ""){
+    if (userEmail === ""){
       return;
     }
     const payload1 = {
       "useremail" : userEmail,
     }
     getuserdata(payload1).then((ret)=>{
-      if (ret['data']['result'] == 'ok'){
+      if (ret['data']['result'] === 'ok'){
         console.log("userdata", ret['data']['data']);
         setPercentValue(ret['data']['data']['profilecompletepercent']);
-        if (ret['data']['data']['avatar'] == ""){
+        if (ret['data']['data']['avatar'] === ""){
           setUserImage("/images/avatars/avatar_man.png");
         }
         else{
@@ -111,7 +121,7 @@ const AccountProfile = props => {
 
   React.useEffect(()=>{
     setPercentValue(datas['profilecompletepercent']);
-    if (datas['avatar'] == ""){
+    if (datas['avatar'] === ""){
       setUserImage("/images/avatars/avatar_man.png");
     }
     else{
@@ -143,6 +153,18 @@ const AccountProfile = props => {
   const handleUpload = (e) => {
     e.preventDefault();
     fileUpload(image.raw).then((response) =>{
+      store.addNotification({
+        title: 'Success',
+        message: 'Uploaded profile picture',
+        type: 'success',                         // 'default', 'success', 'info', 'warning'
+        container: 'top-right',                // where to position the notifications
+        animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+        animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+        dismiss: {
+          duration: 3000
+        }
+      })
+
       console.log(response.data);
       let payload = {
         "username": userName,
@@ -150,13 +172,25 @@ const AccountProfile = props => {
         "avatarurl": response.data['imageurl'],
       }
       updateprofile(payload).then( ret=>{
-        if (ret['data'].result == 'ok'){
+        if (ret['data'].result === 'ok'){          
           setPercentValue(ret['data']['percentValue']);
           console.log("picture", payload['avatarurl']);
           localStorage.setItem('userimage', payload['avatarurl']);
           setusername(userName, userEmail, payload['avatarurl']);
+          store.addNotification({
+            title: 'Success',
+            message: 'Saved your profile',
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
+
         }
-        else if (ret['data'].result == 'fail')
+        else if (ret['data'].result === 'fail')
         {
           alert(ret['data'].message);
         }
@@ -190,7 +224,7 @@ const AccountProfile = props => {
               color="textSecondary"
               variant="body1"
             >
-              {user.city}, {user.country}
+              {user.country}
             </Typography>
             <Typography
               className={classes.dateText}
@@ -200,12 +234,14 @@ const AccountProfile = props => {
               {moment().format('hh:mm A')} (GTM+3)
             </Typography>
           </div>
+          <Tooltip title="Add Picture" aria-label="add" className={classes.filelable}>
+                <Fab color="primary" className={classes.fab}>
           <label htmlFor="upload-button" className={classes.filelable}>
             {image.preview?(
-              <Avatar
-              className={classes.avatar}
-              src={image.preview}
-            />
+                  <Avatar
+                    className={classes.avatar}
+                    src={image.preview}
+                  />
             ):(
               <Avatar
               className={classes.avatar}
@@ -213,6 +249,8 @@ const AccountProfile = props => {
             />  
             )}
           </label>
+          </Fab>
+              </Tooltip>
           <input
             type="file"
             id="upload-button"

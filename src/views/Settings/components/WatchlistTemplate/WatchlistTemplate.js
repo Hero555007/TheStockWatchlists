@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/styles';
 import {savewatchlisttemplate, getwatchlisttemplate, updatewatchlisttemplate} from '../../../../services/api/httpclient';
 import {changeDashboardType } from '../../../../redux/actions';
 import { connect } from "react-redux";
-import { NavLink as RouterLink } from 'react-router-dom';
+import { NavLink as RouterLink, withRouter } from 'react-router-dom';
 import {
   Card,
   CardHeader,
@@ -18,6 +18,7 @@ import {
   Typography,
   Button
 } from '@material-ui/core';
+import { useHistory } from 'react-router-dom';
 
 const mapStateToProps = state => {
   return { username:state.user.username, useremail:state.user.useremail, dashboard_type:state.common.dashboard_type};
@@ -37,11 +38,13 @@ const useStyles = makeStyles(() => ({
 }));
 
 const Notifications = props => {
-  const { className,username, useremail,dispatch,changeDashboardType,history, ...rest } = props;
+   const history = useHistory();
+  const { className,username, useremail,dispatch,changeDashboardType, ...rest } = props;
 
   const [userName, setUserName] = React.useState("");
   const [userEmail, setEmail] = React.useState("");
   const [initialflag, setInitialFlag] = React.useState(false);
+  const [active, setActive] = React.useState(false);
 
   React.useEffect(()=>{
     if (username == "")
@@ -74,7 +77,7 @@ const Notifications = props => {
     {id : 9, name:"entryprice", label:"Entry Price", flag:false, checked:false},
     {id : 10, name:"entrychange", label:"Change", flag:false, checked:false},
     {id : 11, name:"stoploss", label:"StopLoss", flag:false, checked:false},
-    {id : 12, name:"stoplosschange", label:"Change(%)", flag:false, checked:false},
+    {id : 12, name:"tradescore", label:"TradeScore", flag:false, checked:false},
     {id : 13, name:"exitprice", label:"Exit Price", flag:false, checked:false},
     {id : 14, name:"earningdate", label:"Earning ReportDate", flag:false, checked:true},
     {id : 15, name:"alertprice", label:"Alert Price", flag:false, checked:true},
@@ -82,8 +85,7 @@ const Notifications = props => {
     {id : 17, name:"addedprice", label:"Initial Price", flag:false, checked:false},
     {id : 18, name:"addedpricechange", label:"Change(%)", flag:false, checked:false},
     {id : 19, name:"dateadded", label:"Date Added", flag:false, checked:true},
-    {id : 20, name:"comment", label:"Comment", flag:false, checked:false},
-    {id : 21, name:"tradescore", label:"TradeScore", flag:false, checked:false}
+    {id : 20, name:"comment", label:"Comment", flag:false, checked:false}
   ]);
 
   React.useEffect(()=>{
@@ -134,9 +136,6 @@ const Notifications = props => {
                     }
                     else if(item.name == "stoploss"){
                         item.checked = ret.data.data.stoploss;
-                    }
-                    else if(item.name == "stoplosschange"){
-                        item.checked = ret.data.data.stoplosschange;
                     }
                     else if(item.name == "exitprice"){
                         item.checked = ret.data.data.exitprice;
@@ -198,16 +197,20 @@ const Notifications = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
-        savewatchlisttemplate(payload).then( ret=>{
-            if (ret['data'].result == 'ok'){
-                changeDashboardType({dashboard_type:0});
-            }
-            else if(ret['data'].result == 'fail'){
-            }
-            else {
-            }
-            }, err => {
-            });                          
+
+      savewatchlisttemplate(payload).then( ret=>{
+          if (ret['data'].result === 'ok'){
+            console.log("savewatchlisttemp");
+            setActive(true);
+            history.push('/dashboard');
+              changeDashboardType({dashboard_type:0});
+          }
+          else if(ret['data'].result == 'fail'){
+          }
+          else {
+          }
+          }, err => {
+          });                          
     }
     else
     {
@@ -226,7 +229,10 @@ const Notifications = props => {
             payload.data.push(bufdata);
         })
         updatewatchlisttemplate(payload).then( ret=>{
-            if (ret['data'].result == 'ok'){
+            if (ret['data'].result === 'ok'){
+              console.log("savewatchlisttemp");
+              setActive(true);
+              history.push('/dashboard');
             }
             else if(ret['data'].result == 'fail'){
             }
@@ -338,15 +344,13 @@ const Notifications = props => {
         </CardContent>
         <Divider />
         <CardActions>
-          <RouterLink to="/dashboard">
-            <Button
-              color="primary"
-              variant="outlined"
-              onClick={onOK}
-            >
-              Save
-            </Button>
-          </RouterLink>
+        <Button
+          color="primary"
+          variant="outlined"
+          onClick={()=>onOK()}
+        >
+          Save
+        </Button>
         </CardActions>
       </form>
     </Card>
@@ -354,6 +358,7 @@ const Notifications = props => {
 };
 
 Notifications.propTypes = {
+  history: PropTypes.object,
   className: PropTypes.string
 };
 

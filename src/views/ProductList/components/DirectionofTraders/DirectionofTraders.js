@@ -1,9 +1,10 @@
-import React from 'react';
+import React ,{useCallback} from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
+import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward'
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 const useStyles = makeStyles(theme => ({
@@ -42,9 +43,19 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const DirectionofTraders = props => {
-  const { className, ...rest } = props;
+  const { className, shortorlong, ...rest } = props;
 
   const classes = useStyles();
+  const getIcon = useCallback(()=>{
+    console.log('aa');
+    if (shortorlong === "Short")
+    {
+      return <ArrowDownwardIcon className={classes.differenceIcon} />
+    }
+    else{
+      return <ArrowUpwardIcon className={classes.differenceIcon} />
+    }
+  })
 
   return (
     <Card
@@ -65,7 +76,7 @@ const DirectionofTraders = props => {
             >
               Direction of Traders
             </Typography>
-            <Typography variant="h3">Short</Typography>
+            <Typography variant="h3">{shortorlong}</Typography>
           </Grid>
           <Grid item>
             <Avatar className={classes.avatar}>
@@ -74,7 +85,8 @@ const DirectionofTraders = props => {
           </Grid>
         </Grid>
         <div className={classes.difference}>
-          <ArrowDownwardIcon className={classes.differenceIcon} />
+          {getIcon()}
+          {/* <ArrowDownwardIcon className={classes.differenceIcon} /> */}
           {/* <Typography
             className={classes.differenceValue}
             variant="body2"

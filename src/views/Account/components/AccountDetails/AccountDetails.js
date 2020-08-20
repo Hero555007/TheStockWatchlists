@@ -17,6 +17,9 @@ import {
   FormControlLabel,
   Checkbox,
 } from '@material-ui/core';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
 
 const mapStateToProps = state => {
   return {  username:state.user.username, userimage:state.user.userimage, useremail:state.user.useremail};
@@ -47,7 +50,7 @@ const AccountDetails = props => {
   const [userName, setUserName] = React.useState("");
   const [userEmail, setUserEmail] = React.useState("");
   React.useEffect(()=>{
-    if (username == "")
+    if (username === "")
     {
       setUserName(localStorage.getItem('username'));
       setUserEmail(localStorage.getItem('useremail'));
@@ -56,7 +59,7 @@ const AccountDetails = props => {
       setUserName(username);
       setUserEmail(useremail);
     }  
-  },[]);
+  },[username, useremail]);
 
   const [values, setValues] = useState({
     phone: '',
@@ -70,14 +73,14 @@ const AccountDetails = props => {
   });
 
   React.useEffect(()=>{
-    if (userEmail == ""){
+    if (userEmail === ""){
       return;
     }
     const payload1 = {
       "useremail" : userEmail,
     }
     getuserdata(payload1).then((ret)=>{
-      if (ret['data']['result'] == 'ok'){
+      if (ret['data']['result'] === 'ok'){
         console.log("userdata11", ret['data']['data']);
         setValues(ret['data']['data']);
       }
@@ -86,26 +89,68 @@ const AccountDetails = props => {
 
   const handleChange = (event, value )=> {
     event.persist();
+    console.log("countryselect", event.target.name, value);
     setValues(()=>{
-      if (event.target == null){
+      if (event.target === null){
         return;
       }
-      if (event.target.name == "pmf") {
+      if (event.target.name === "pmf") {
         return {
           ...values,
           privatemessageflag:event.target.checked
         }
       } 
-      if (event.target.name == "share") {
+      if (event.target.name === "share") {
         return {
           ...values,
           shareflag:event.target.checked
         }
       } 
-      if (event.target.name == undefined){
+      if (event.target.name === undefined){
+        console.log("country", value);
         return {
           ...values,
-          country: value.label   
+          country: value
+        }
+      }
+      if (event.target.name === "phone"){
+        if (event.target.value > 120){
+          return {
+            ...values,
+            phone : 120
+          }
+        }
+        else if (event.target.value < 0){
+          return {
+            ...values,
+            phone : 0
+          }
+        }
+        else{
+          return {
+            ...values,
+            phone : event.target.value
+          }
+        }
+      }
+      if (event.target.name === "age"){
+        if (event.target.value > 120){
+          return {
+            ...values,
+            age : 120
+          }
+        }
+        else if (event.target.value < 0){
+          return {
+            ...values,
+            age : 0
+          }
+        }
+        else{
+          return {
+            ...values,
+            age : event.target.value
+          }
         }
       }
       else{
@@ -118,17 +163,29 @@ const AccountDetails = props => {
   };
 
   const OnSaveprofile=()=>{
-    console.log("values", values)
+    console.log("profilevalues", values)
     const payload = {...values};
     payload['username'] = userName;
     payload['useremail'] = userEmail;
     updateprofile(payload).then(ret=>{
-      if(ret['data'].result == 'ok'){
+      if(ret['data'].result === 'ok'){
         const payload1 = {
           "useremail" : userEmail,
         }
         getuserdata(payload1).then((ret)=>{
-          if (ret['data']['result'] == 'ok'){
+          if (ret['data']['result'] === 'ok'){
+            store.addNotification({
+              title: 'Success',
+              message: 'Saved your profile',
+              type: 'success',                         // 'default', 'success', 'info', 'warning'
+              container: 'top-right',                // where to position the notifications
+              animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+              animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+              dismiss: {
+                duration: 3000
+              }
+            })
+      
             onUpdate(ret['data']['data']);
           }
         });
@@ -140,6 +197,10 @@ const AccountDetails = props => {
     {
       value: '',
       label:''
+    },
+    {
+      value: 'unknown',
+      label: 'Unknown'
     },
     {
       value: 'man',
@@ -164,7 +225,7 @@ const AccountDetails = props => {
       label: 'Fundamental Investor'
     }
   ];
-  const country = [
+  const countries = [
     { code: 'AD', label: 'Andorra', phone: '376' },
     { code: 'AE', label: 'United Arab Emirates', phone: '971' },
     { code: 'AF', label: 'Afghanistan', phone: '93' },
@@ -513,7 +574,7 @@ const AccountDetails = props => {
             >
               <TextField
                 fullWidth
-                label="Phone Number"
+                label="Years of trading exprecince"
                 margin="dense"
                 name="phone"
                 onChange={handleChange}
@@ -527,23 +588,22 @@ const AccountDetails = props => {
               md={6}
               xs={12}
             >
+
             <Autocomplete
                   fullWidth
                   margin='dense'
-                  onChange={handleChange}
+                  onInputChange={handleChange}
                   id="country-select-demo"
-                  options={country}
+                  options={countries}
                   classes={{
                     option: classes.option,
                   }}
-                  inputValue={values.country}
                   name="country"
                   autoHighlight
                   getOptionLabel={(option) => option.label}
                   renderOption={(option) => (
-                    <React.Fragment>
-                      <span>{countryToFlag(option.code)}</span>
-                      {option.label} ({option.code}) +{option.phone}
+                    <React.Fragment>                      
+                      {option.label}
                     </React.Fragment>
                   )}
                   renderInput={(params) => (
@@ -555,7 +615,6 @@ const AccountDetails = props => {
                       variant="outlined"
                       inputProps={{
                         ...params.inputProps,
-                        autoComplete: 'new-password', // disable autocomplete and autofill
                       }}
                     />
                   )}
@@ -566,7 +625,7 @@ const AccountDetails = props => {
               md={6}
               xs={12}
             > 
-              <TextField
+              {/* <TextField
                 fullWidth
                 label="State"
                 margin="dense"
@@ -575,7 +634,7 @@ const AccountDetails = props => {
                 required
                 value={values.city}
                 variant="outlined"
-              />
+              /> */}
             </Grid>
             <Grid
               item

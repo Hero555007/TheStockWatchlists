@@ -6,14 +6,22 @@ import { Divider, Drawer } from '@material-ui/core';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import PeopleIcon from '@material-ui/icons/People';
 import ShoppingBasketIcon from '@material-ui/icons/ShoppingBasket';
-import TextFieldsIcon from '@material-ui/icons/TextFields';
-import ImageIcon from '@material-ui/icons/Image';
 import AccountBoxIcon from '@material-ui/icons/AccountBox';
 import SettingsIcon from '@material-ui/icons/Settings';
-import LockOpenIcon from '@material-ui/icons/LockOpen';
+import ChatIcon from '@material-ui/icons/Chat';
+import GroupAddIcon from '@material-ui/icons/GroupAdd';
+import PersonIcon from '@material-ui/icons/Person';
+import { connect } from "react-redux";
 
-import { Profile, SidebarNav, UpgradePlan } from './components';
+import { Profile, SidebarNav } from './components';
 
+const mapStateToProps = state => {
+  return { useremail:state.user.useremail};
+};
+function mapDispatchToProps(dispatch) {
+  return {
+  };
+}
 const useStyles = makeStyles(theme => ({
   drawer: {
     width: 240,
@@ -27,7 +35,8 @@ const useStyles = makeStyles(theme => ({
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
-    padding: theme.spacing(2)
+    padding: theme.spacing(2),
+    marginTop:"10px"
   },
   divider: {
     margin: theme.spacing(2, 0)
@@ -38,10 +47,9 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Sidebar = props => {
-  const { open, variant, onClose, className, ...rest } = props;
+  const { open, variant, onClose, className,useremail, ...rest } = props;
 
   const classes = useStyles();
-
   const pages = [
     {
       title: 'Dashboard',
@@ -49,30 +57,20 @@ const Sidebar = props => {
       icon: <DashboardIcon />
     },
     {
-      title: 'Followers',
+      title: 'Follower Users',
       href: '/users',
       icon: <PeopleIcon />
+    },
+    {
+      title: 'Followed Users',
+      href: '/fusers',
+      icon: <GroupAddIcon />
     },
     {
       title: 'Global',
       href: '/products',
       icon: <ShoppingBasketIcon />
     },
-    // {
-    //   title: 'Authentication',
-    //   href: '/sign-in',
-    //   icon: <LockOpenIcon />
-    // },
-    // {
-    //   title: 'Typography',
-    //   href: '/typography',
-    //   icon: <TextFieldsIcon />
-    // },
-    // {
-    //   title: 'Icons',
-    //   href: '/icons',
-    //   icon: <ImageIcon />
-    // },
     {
       title: 'Account',
       href: '/account',
@@ -82,8 +80,39 @@ const Sidebar = props => {
       title: 'Settings',
       href: '/settings',
       icon: <SettingsIcon />
+    },
+    {
+      title: 'Chat',
+      href: '/chat',
+      icon: <ChatIcon />
     }
   ];
+  const [userEmail, setEmail] = React.useState("");
+  const [pagelist, setPagelist] = React.useState(pages);
+
+  React.useEffect(()=>{
+    if (useremail === "")
+    {
+      return;
+    }
+      setEmail(useremail);
+  },[useremail]);
+
+  React.useEffect(()=>{
+    if (userEmail == "admin@admin.com")
+    {
+      setPagelist(()=>{
+        const _pagelist = [...pagelist];
+        _pagelist.push({
+          title: 'Admin Panel',
+          href: '/admin-panel',
+          icon: <PersonIcon />
+        })
+      return _pagelist;
+      })
+    }
+  },[userEmail]);
+
 
   return (
     <Drawer
@@ -98,10 +127,10 @@ const Sidebar = props => {
         className={clsx(classes.root, className)}
       >
         <Profile />
-        <Divider className={classes.divider} />
+        <Divider className={classes.divider} style={{marginTop:"35px"}}/>
         <SidebarNav
           className={classes.nav}
-          pages={pages}
+          pages={pagelist}
         />
       </div>
     </Drawer>
@@ -115,4 +144,4 @@ Sidebar.propTypes = {
   variant: PropTypes.string.isRequired
 };
 
-export default Sidebar;
+export default connect(mapStateToProps, mapDispatchToProps)(Sidebar);

@@ -3,9 +3,17 @@ const initState = {
     useremail : "",
     userimage : "",
     userrole:"",
+    Wusername: "",
+    Wuseremail : "",
+    Wuserimage : "",
+    Wuserrole:"",
     alertflag : "none",
     alertsymbol : "",
     token :"",
+    vtoken : "",
+    vtokenf: "",
+    emailf:"",
+    notification:{},
 };
 
 const user = (state={...initState}, action) => {
@@ -32,6 +40,33 @@ const user = (state={...initState}, action) => {
             return {
                 ...state,
                 token: action.payload
+            }
+        case 'SET_VTOKEN':
+            return {
+                ...state,
+                vtoken:action.payload
+            }
+        case 'SET_VTOKENF':
+            console.log("vtokenf", action.payload);
+            return {
+                ...state,
+                vtokenf:action.payload.vtokenf,
+                emailf:action.payload.emailf,
+            }
+        case 'SET_WATCH_USER_INFO':
+        console.log("newwatchliststate", state, action.payload)
+        return {
+            ...state,
+            Wusername: action.payload.Wusername,
+            Wuseremail : action.payload.Wuseremail,
+            Wuserimage : action.payload.Wuserimage,
+            Wuserrole : action.payload.Wuserrole,
+        }
+        case 'SET_NOTIFICATION':
+            console.log("reduxnotification", state, action.payload)
+            return {
+                ...state,
+                notification : action.payload
             }
         default:
             return {...state};

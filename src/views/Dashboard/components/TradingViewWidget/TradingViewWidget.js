@@ -1,14 +1,12 @@
-import React, {useEffect, useRef, useLayoutEffect} from 'react';
-import { makeStyles, withStyles } from '@material-ui/styles';
+import React, {useEffect, useLayoutEffect} from 'react';
+import { makeStyles} from '@material-ui/styles';
 import TradingMainViewWidget from './TradingMainViewWidget';
-import { setSymbolName } from '../../../../redux/actions';
 import { connect } from "react-redux";
 
 const mapStateToProps = state => {
 };
 function mapDispatchToProps(dispatch) {
   return {
-    setSymbolName:payload => dispatch(setSymbolName(payload))
   };
 }
 
@@ -81,7 +79,7 @@ const useStyles = makeStyles(theme => ({
 
 const TradingViewWidget = (props) => {
   const classes = useStyles();
-  const {symbol, setSymbolName} = props
+  const {symbol} = props
 
   const [openSidebar, setOpenSidebar] = React.useState(false);
   const handleSidebarOpen = () => {    

@@ -41,29 +41,29 @@ const Profile = props => {
   const [user, setUser] = React.useState(
     {
       name: "",
-      avatar: '/images/avatars/avatar_man.png',
+      avatar: '',
       bio: 'Top trader'
     }
   )
   React.useEffect(()=>{
-    if (useremail == "")
+    if (useremail === "")
     {
       setUserEmail(localStorage.getItem('useremail'));
     }
     else{
       setUserEmail(useremail);
     }  
-  },[]);
+  },[useremail]);
 
   React.useEffect(()=>{
-    if (userEmail == ""){
+    if (userEmail === ""){
       return;
     }
     const payload1 = {
       "useremail" : userEmail,
     }
     getuserdata(payload1).then((ret)=>{
-      if (ret['data']['result'] == 'ok'){
+      if (ret['data']['result'] === 'ok'){
         console.log("profileuserdata", ret['data']['data']);
         setUser(ret['data']['data']);
       }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
-import {getglobalWatchlist} from '../../services/api/httpclient';
+import {searchglobalfollowers, getearningstocks, gettopstocks, getshortlong, gettopstocksforshortlong, getglobalfollowerslist} from '../../services/api/httpclient';
 import {
   EarningReportStocks,
   MostFollowedUsers,
@@ -12,6 +12,18 @@ import {
   UsersToolbar,
   Watchlist
 } from './components';
+import LinearProgress from '@material-ui/core/LinearProgress';
+import { connect } from "react-redux";
+
+
+const mapStateToProps = state => {
+  return { useremail:state.user.useremail};
+};
+function mapDispatchToProps(dispatch) {
+    return {
+    };
+}
+
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -19,25 +31,109 @@ const useStyles = makeStyles(theme => ({
   },
   content: {
     marginTop: theme.spacing(2)
-  }
+  },
+  backdrop: {
+    zIndex: theme.zIndex.drawer + 1,
+  },
 }));
 
-const ProductList = () => {
+const ProductList = props => {
   const classes = useStyles();
+  const {  useremail } = props;
 
+  var count = 0;
   const [products, setProducts] = useState([]);
+  const [stocks, setStocks] = useState([]);
+  const [shortorlong, setShortorlong] = useState('');
+  const [shortdata, setShortdata] = useState([]);
+  const [longdata, setLongdata] = useState([])
+  const [followerslist, setFollowerslist] = useState([])
+  const [openText, setOpenText] = React.useState("block");
+  const [searchText, setSearchText] = React.useState("");
+  const [progress, setProgress] = React.useState(0);
+  const [userEmail, setEmail] = React.useState("");
 
   React.useEffect(()=>{
-    getglobalWatchlist().then(ret=>{
-      if (ret['data']['result'] == 'ok'){
-        
-      }
-    })
+    if (useremail === "")
+    {
+        setEmail(localStorage.getItem('useremail'));
+    }
+    else{
+        setEmail(useremail);
+    }  
+    },[ useremail]);
+
+  React.useEffect(()=>{
+    getglobalfollowerslist().then(ret=>{
+      if (ret['data']['result'] === 'ok'){
+        setFollowerslist(ret['data']['data']);
+        setProgress(20);
+        getearningstocks().then(ret=>{
+          if (ret['data']['result'] === 'ok'){
+            console.log("products", ret['data']['data']);
+            setProducts(ret['data']['data']);
+            setProgress(40);
+            gettopstocks().then(ret=>{
+              if (ret['data']['result'] === 'ok'){
+                console.log("topproducts", ret['data']['data']);
+                setStocks(ret['data']['data']);
+                setProgress(60);
+                getshortlong().then(ret=>{
+                  if (ret['data']['result'] === 'ok'){
+                    console.log("shortorlong", ret['data']['data']);
+                    setShortorlong(ret['data']['data']);
+                    setProgress(80);
+                    gettopstocksforshortlong().then(ret=>{
+                      if (ret['data']['result'] === 'ok'){
+                        setProgress(100);
+                        console.log("shortorlong", ret['data']['data']);
+                        setShortdata(ret['data']['shortdata']);
+                        setLongdata(ret['data']['longdata']);
+                        setOpenText("none");
+                      }
+                    });
+                              }
+                });
+                      }
+            });
+              }
+        });
+            }
+    });
   },[]);
+
+  React.useEffect(()=>{
+    console.log("searchtextformostfollowerdusers", searchText);
+    if (searchText === ""){
+      getglobalfollowerslist().then(ret=>{
+        if (ret['data']['result'] === 'ok'){
+          setFollowerslist(ret['data']['data']);
+        }  
+      })
+    }
+    else{
+      let payload = {
+        'searchText' : searchText,
+      }
+      searchglobalfollowers(payload).then(ret=>{
+        if (ret['data']['result'] === 'ok'){
+          setFollowerslist(ret['data']['data']);
+        }          
+      })
+    }
+  },[searchText])
+
+  const handlechange = (text) =>{
+    console.log("searchTextforpropscheck", text);
+    setSearchText(text);
+  }
 
   return (
     <div className={classes.root}>
-      <UsersToolbar />
+    {/* <Backdrop className={classes.backdrop} open={open}> */}
+    <LinearProgress style={{display:openText}} color="primary" variant="determinate" value={progress}/>
+    {/* </Backdrop> */}
+      <UsersToolbar onChange={handlechange} />
       <div className={classes.content}>
         <Grid
           container
@@ -50,7 +146,7 @@ const ProductList = () => {
             xl={6}
             xs={12}
           >
-            <MostFollowedUsers />
+            <MostFollowedUsers followerslist={followerslist}/>
           </Grid>
           <Grid
             item
@@ -59,7 +155,7 @@ const ProductList = () => {
             xl={3}
             xs={12}
           >
-            <EarningReportStocks />
+            <EarningReportStocks products={products}/>
           </Grid>
           <Grid
             item
@@ -68,7 +164,7 @@ const ProductList = () => {
             xl={3}
             xs={12}
           >
-            <TopStocks />
+            <TopStocks stocks={stocks}/>
           </Grid>
           <Grid
             item
@@ -76,11 +172,24 @@ const ProductList = () => {
             md={12}
             xl={9}
             xs={12}
-          >
-            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
-            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
-            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
-            <Watchlist name={"Meir"} avatar={"/images/avatars/avatar_man.png"}/>
+          >{
+            followerslist.map(users=>{
+              if (followerslist.length  <=5 )
+              {
+                return (
+                  <Watchlist name={users.username} email={users.email} avatar={users.avatar} />
+                )  
+              }
+              else{
+                if (count < 5){
+                  count = count + 1;
+                  return (
+                    <Watchlist name={users.username} email={users.email} avatar={users.avatar} myemail={userEmail}/>
+                  )    
+                }
+              }
+              })
+          }
           </Grid>
           <Grid
             item
@@ -99,9 +208,9 @@ const ProductList = () => {
               justify="space-between"
               alignItems="flex-end"
             >
-              <DirectionofTraders />
-              <TopStocksforShort />
-              <TopStocksforLong />
+              <DirectionofTraders shortorlong={shortorlong}/>
+              <TopStocksforShort shortdata={shortdata}/>
+              <TopStocksforLong longdata={longdata}/>
             </Grid>
           </Grid>
         </Grid>
@@ -110,4 +219,4 @@ const ProductList = () => {
   );
 };
 
-export default ProductList;
+export default connect(mapStateToProps,mapDispatchToProps)(ProductList);

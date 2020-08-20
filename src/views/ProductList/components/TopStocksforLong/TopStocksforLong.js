@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
@@ -6,20 +6,13 @@ import {
   Card,
   CardHeader,
   CardContent,
-  CardActions,
   Button,
   Divider,
   List,
   ListItem,
   ListItemAvatar,
   ListItemText,
-  IconButton
 } from '@material-ui/core';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import ArrowLeftIcon from '@material-ui/icons/ArrowLeft';
-
-import mockData from './data';
 
 const useStyles = makeStyles(() => ({
   root: {
@@ -28,7 +21,9 @@ const useStyles = makeStyles(() => ({
     marginTop:'20px'
   },
   content: {
-    padding: 0
+    padding: 0,
+    maxHeight:'350px',
+    overflowY:'scroll'
   },
   image: {
     height: 48,
@@ -40,11 +35,11 @@ const useStyles = makeStyles(() => ({
 }));
 
 const TopStocksforLong = props => {
-  const { className, ...rest } = props;
+  const { className,longdata, ...rest } = props;
 
   const classes = useStyles();
 
-  const [products] = useState(mockData);
+  // const [products] = useState(mockData);
 
   return (
     <Card
@@ -52,15 +47,15 @@ const TopStocksforLong = props => {
       className={clsx(classes.root, className)}
     >
       <CardHeader
-        subtitle={`${products.length} in total`}
+        subtitle={`${longdata.length} in total`}
         title="Top Stocks for Long"
       />
       <Divider />
       <CardContent className={classes.content}>
         <List>
-          {products.map((product, i) => (
+          {longdata.map((product, i) => (
             <ListItem
-              divider={i < products.length - 1}
+              divider={i < longdata.length - 1}
               key={product.id}
             >
               <ListItemAvatar>
@@ -80,7 +75,7 @@ const TopStocksforLong = props => {
         </List>
       </CardContent>
       <Divider />
-      <CardActions className={classes.actions}>
+      {/* <CardActions className={classes.actions}>
         <Button
             color="primary"
             size="small"
@@ -95,7 +90,7 @@ const TopStocksforLong = props => {
         >
           Next <ArrowRightIcon />
         </Button>
-      </CardActions>
+      </CardActions> */}
     </Card>
   );
 };

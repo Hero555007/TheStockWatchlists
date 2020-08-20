@@ -8,13 +8,21 @@ import {
   Dashboard as DashboardView,
   ProductList as ProductListView,
   UserList as UserListView,
+  UserListF as UserListFView,
   Typography as TypographyView,
   Icons as IconsView,
   Account as AccountView,
   Settings as SettingsView,
   SignUp as SignUpView,
   SignIn as SignInView,
-  NotFound as NotFoundView
+  NotFound as NotFoundView,
+  Validation as ValidationView,
+  ValidationForget as ValidationForgetView,
+  Communication as ChatView,
+  NewWatchlist as NewWatchlistView,
+  ForgetPassword as ForgetPasswordView,
+  PasswordReset as PasswordResetView,
+  AdminPanel as AdminPanelView,
 } from './views';
 
 const Routes = () => {
@@ -36,6 +44,18 @@ const Routes = () => {
         exact
         layout={MainLayout}
         path="/users"
+      />
+      <RouteWithLayout
+        component={AdminPanelView}
+        exact
+        layout={MainLayout}
+        path="/admin-panel"
+      />
+      <RouteWithLayout
+        component={UserListFView}
+        exact
+        layout={MainLayout}
+        path="/fusers"
       />
       <RouteWithLayout
         component={ProductListView}
@@ -68,6 +88,12 @@ const Routes = () => {
         path="/settings"
       />
       <RouteWithLayout
+        component={ChatView}
+        exact
+        layout={MainLayout}
+        path="/chat"
+      />
+      <RouteWithLayout
         component={SignUpView}
         exact
         layout={MinimalLayout}
@@ -80,10 +106,40 @@ const Routes = () => {
         path="/sign-in"
       />
       <RouteWithLayout
+        component={ForgetPasswordView}
+        exact
+        layout={MinimalLayout}
+        path="/forget-password"
+      />
+      <RouteWithLayout
+        component={PasswordResetView}
+        exact
+        layout={MinimalLayout}
+        path="/password-reset"
+      />
+      <RouteWithLayout
         component={NotFoundView}
         exact
         layout={MinimalLayout}
         path="/not-found"
+      />
+      <RouteWithLayout
+        component={ValidationView}
+        exact
+        layout={MinimalLayout}
+        path="/validation"
+      />
+      <RouteWithLayout
+        component={ValidationForgetView}
+        exact
+        layout={MinimalLayout}
+        path="/validation-forget"
+      />
+      <RouteWithLayout
+        component={NewWatchlistView}
+        exact
+        layout={MinimalLayout}
+        path="/newwatchlist"
       />
       <Redirect to="/not-found" />
     </Switch>

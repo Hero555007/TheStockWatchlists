@@ -20,6 +20,127 @@ const savesharewatchlisttemplatePath = 'api/importsharewatchlisttemplate'
 const getsharewatchlisttemplatePath = 'api/getsharewatchlisttemplate'
 const updatesharewatchlisttemplatePath = 'api/updatesharewatchlisttemplate'
 const getglobalwatchlistPath = 'api/getglobalwatchlist'
+const searchglobalfollowersPath = 'api/searchglobalfollowers'
+const getearningstocksPath = 'api/getearningstocks'
+const gettopstocksPath = 'api/gettopstocks'
+const getshortlongPath = 'api/getshortlong'
+const gettopstocksforshortlongPath = 'api/gettopstocksforshortlong'
+const getfollowerslistPath = 'api/getfollowerslist'
+const getfollowedlistPath = 'api/getfollowedlist'
+const deletefollowerPath = 'api/deletefollower'
+const getglobalfollowerslistPath = 'api/getglobalfollowerslist'
+const setfollowersPath = 'api/setfollowers'
+const getfollowersPath = 'api/getfollowers'
+const getcontactsPath = 'api/getcontacts'
+const setcontactsPath = 'api/setcontacts'
+const importchatPath = 'api/importchat'
+const savecontactsPath = 'api/savecontact'
+const getchatPath = 'api/getchat'
+const readchatPath = 'api/readchat'
+const getchatfornotificationPath = 'api/getchatfornotification'
+const deletechatPath = 'api/deletechat'
+const getowncontactsPath = 'api/getowncontacts'
+const getsharemethodPath = 'api/getsharemethod'
+const setsharemethodPath = 'api/setsharemethod'
+const deleteuserincontactPath = 'api/deleteuserincontact'
+const setactivePath = 'api/setactive'
+const gettokenPath = 'api/gettoken'
+const resetpasswordPath = 'api/resetpassword'
+const admingetuserlistPath = 'api/admingetuserlist'
+const deleteuserPath = 'api/deleteuser'
+const activeverifyPath = 'api/activeverify'
+const resendcodePath = 'api/resendcode'
+const validgroupuserPath = 'api/validgroupuser'
+
+export function validgroupuser(data){
+    return new Promise((resolve,reject) =>
+        post(validgroupuserPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function resendcode(data){
+    return new Promise((resolve,reject) =>
+        post(resendcodePath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function activeverify(data){
+    return new Promise((resolve,reject) =>
+        post(activeverifyPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function savecontacts(data){
+    return new Promise((resolve,reject) =>
+        post(savecontactsPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function deleteuser(data){
+    return new Promise((resolve,reject) =>
+        post(deleteuserPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function admingetuserlist(){
+    return new Promise((resolve,reject) =>
+        get(admingetuserlistPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function resetpassword(data){
+    return new Promise((resolve,reject) =>
+        post(resetpasswordPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function gettoken(data){
+    return new Promise((resolve,reject) =>
+        post(gettokenPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function setactive(data){
+    return new Promise((resolve,reject) =>
+        post(setactivePath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
 
 export function signup(data){
     return new Promise((resolve,reject) =>
@@ -141,7 +262,6 @@ export function getWatchlist(data){
         })
     );
 }
-
 export function changeViewStatus(data){
     return new Promise((resolve,reject) =>
         post(changeviewstatusPath, data, false).then((resp) => {
@@ -154,7 +274,17 @@ export function changeViewStatus(data){
 
 export function getglobalWatchlist(){
     return new Promise((resolve,reject) =>
-        get(getglobalwatchlistPath, false).then((resp) => {
+        get(getglobalwatchlistPath, null,false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function searchglobalfollowers(data){
+    return new Promise((resolve,reject) =>
+        post(searchglobalfollowersPath, data, false).then((resp) => {
             resolve(resp);        
         }).catch(err => {
             reject(err); // not provide internal server error
@@ -216,6 +346,214 @@ export function updatesharewatchlisttemplate(data){
     return new Promise((resolve,reject) =>
         post(updatesharewatchlisttemplatePath, data, false).then((resp) => {
             resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getearningstocks(){
+    return new Promise((resolve,reject) =>
+        get(getearningstocksPath,null, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function gettopstocks(){
+    return new Promise((resolve,reject) =>
+        get(gettopstocksPath, null, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getshortlong(){
+    return new Promise((resolve,reject) =>
+        get(getshortlongPath,null, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function gettopstocksforshortlong(){
+    return new Promise((resolve,reject) =>
+        get(gettopstocksforshortlongPath,null, false).then((resp) => {
+            resolve(resp);        
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getfollowerslist(data){
+    return new Promise((resolve,reject) =>
+        post(getfollowerslistPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getfollowedlist(data){
+    return new Promise((resolve,reject) =>
+        post(getfollowedlistPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function deletefollower(data){
+    return new Promise((resolve,reject) =>
+        post(deletefollowerPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getglobalfollowerslist(){
+    return new Promise((resolve,reject) =>
+        get(getglobalfollowerslistPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function setfollowers(data){
+    return new Promise((resolve,reject) =>
+        post(setfollowersPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getfollowers(data){
+    return new Promise((resolve,reject) =>
+        post(getfollowersPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getcontacts(data){
+    return new Promise((resolve,reject) =>
+        post(getcontactsPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function importchat(data){
+    return new Promise((resolve,reject) =>
+        post(importchatPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function deletechat(data){
+    return new Promise((resolve,reject) =>
+        post(deletechatPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getchat(data){
+    return new Promise((resolve,reject) =>
+        post(getchatPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+export function readchat(data){
+    return new Promise((resolve,reject) =>
+        post(readchatPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+export function getchatfornotification(data){
+    return new Promise((resolve,reject) =>
+        post(getchatfornotificationPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function setcontacts(data){
+    return new Promise((resolve,reject) =>
+        post(setcontactsPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getowncontacts(data){
+    return new Promise((resolve,reject) =>
+        post(getowncontactsPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getsharemethod(data){
+    return new Promise((resolve,reject) =>
+        post(getsharemethodPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function setsharemethod(data){
+    return new Promise((resolve,reject) =>
+        post(setsharemethodPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function deleteuserincontact(data){
+    return new Promise((resolve,reject) =>
+        post(deleteuserincontactPath, data, false).then((resp) => {
+            resolve(resp);       
         }).catch(err => {
             reject(err); // not provide internal server error
         })

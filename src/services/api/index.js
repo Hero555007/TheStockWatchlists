@@ -11,21 +11,6 @@ const API_URL =  `${SERVER_URL}`;
 
 //const API_URL = `http://localhost:8080/${SERVER_URL}`
 
-function getCookie(name) {
-    let cookieValue = '';
-    if (document.cookie && document.cookie != '') {
-        let cookies = document.cookie.split(';');
-        for (let cookie of cookies) {
-            cookie = cookie.trim();
-            if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}
-
 function getAccessToken(name){
     var accessToken = localStorage.getItem('accessToken');    
     return accessToken;

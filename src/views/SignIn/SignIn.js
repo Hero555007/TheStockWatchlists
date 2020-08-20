@@ -16,7 +16,7 @@ import {
   Typography
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
-
+import ReCAPTCHA from 'react-google-recaptcha'
 
 const schema = {
   email: {
@@ -132,6 +132,8 @@ const SignIn = props => {
   const { history, dispatch } = props;
 
   const classes = useStyles();
+  const [isverified, setIsverified] = React.useState(false);
+  const recaptchaRef = React.createRef();
 
   const [formState, setFormState] = useState({
     isValid: false,
@@ -142,13 +144,12 @@ const SignIn = props => {
 
   useEffect(() => {
     const errors = validate(formState.values, schema);
-
     setFormState(formState => ({
       ...formState,
-      isValid: errors ? false : true,
+      isValid: (errors ? false : true) && isverified ,
       errors: errors || {}
     }));
-  }, [formState.values]);
+  }, [formState.values, isverified]);
 
   const handleBack = () => {
     history.goBack();
@@ -172,44 +173,65 @@ const SignIn = props => {
       }
     }));
   };
+  const onSubmit = () => {
+    const recaptchaValue = recaptchaRef.current.getValue();
+    this.props.onSubmit(recaptchaValue);
+  }
 
   const handleSignIn = event => {
     event.preventDefault();
-    let payload = {
-      "email": formState.values.email,
-      "password": formState.values.password
+    if (isverified == true)
+    {
+      let payload = {
+        "email": formState.values.email,
+        "password": formState.values.password
+      }
+  
+      signin(payload).then( ret=>{
+        if (ret['data'].result === 'ok'){
+          if (ret['data']['activeflag'] === true)
+          {
+            console.log(ret['data']);
+            localStorage.setItem('access_token', ret['data']['access_token']);
+            localStorage.setItem('username', ret['data']['name']);
+            localStorage.setItem('useremail', ret['data']['email']);
+            localStorage.setItem('userrole', "2");
+            dispatch(setUserName(ret['data']['name'], ret['data']['email'], ret['data']['image'],ret['data']['role']));
+            dispatch(setUserToken(ret['data']['access_token']));
+            history.push({
+              pathname :'/dashboard',
+              data : ret['data']
+            });  
+          }
+        }
+        else if(ret['data'].result === 'fail'){
+          alert(ret['data'].message);
+          history.push('/sign-up');
+        }
+        else {
+          alert(ret['data'].error);
+          history.push('/sign-up');
+        }
+      }, err => {
+        alert(err.error);
+        history.push('/sign-up');
+      });
+    }
+    else{
+
     }
 
-    signin(payload).then( ret=>{
-      if (ret['data'].result == 'ok'){
-        console.log(ret['data']);
-        localStorage.setItem('access_token', ret['data']['access_token']);
-        localStorage.setItem('username', ret['data']['name']);
-        localStorage.setItem('useremail', ret['data']['email']);
-        localStorage.setItem('userrole', "2");
-        dispatch(setUserName(ret['data']['name'], ret['data']['email'], ret['data']['image'],ret['data']['role']));
-        dispatch(setUserToken(ret['data']['access_token']));
-        history.push({
-          pathname :'/dashboard',
-          data : ret['data']
-        });
-      }
-      else if(ret['data'].result == 'fail'){
-        alert(ret['data'].message);
-        history.push('/sign-up');
-      }
-      else {
-        alert(ret['data'].error);
-        history.push('/sign-up');
-      }
-    }, err => {
-      alert(err.error);
-      history.push('/sign-up');
-    });
   };
 
   const hasError = field =>
     formState.touched[field] && formState.errors[field] ? true : false;
+
+  const recaptchaverified = ()=>{
+    setIsverified(true);
+  }
+  const recaptchatexpired = ()=>{
+    setIsverified(false);
+  }
 
   return (
     <div className={classes.root}>
@@ -280,6 +302,30 @@ const SignIn = props => {
                   value={formState.values.password || ''}
                   variant="outlined"
                 />
+                <Typography
+                  color="textSecondary"
+                  variant="body1"
+                  style={{paddingBottom:"50px", paddingTop:"10px", float:"right"}}
+                >
+                  Forget {' '}
+                  <Link
+                    component={RouterLink}
+                    to="/forget-password"
+                    variant="h6"
+                  >
+                    Password?
+                  </Link>
+                </Typography>
+                <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
+                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                    onChange={recaptchaverified}
+                    onExpired={recaptchatexpired}
+                  />
+                </form>
+
                 <Button
                   className={classes.signInButton}
                   color="primary"

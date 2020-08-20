@@ -2,11 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles, withStyles } from '@material-ui/styles';
-import { Box, Hidden, useMediaQuery } from '@material-ui/core';
+import { Hidden, useMediaQuery } from '@material-ui/core';
 import Icon from '@material-ui/core/Icon';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
-import Input from '@material-ui/core/Input';
 import { connect } from "react-redux";
 import {setIntervaltime } from "../../../../../../../redux/actions/index.js";
 
@@ -21,10 +20,10 @@ function mapDispatchToProps(dispatch) {
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4),
+    paddingTop: '5px',
     backgroundColor: '#1b2d5e',
     height : '100%',
     width: '100%',
-    padding: '0px',
   },
   toggleIcon: {
     fontFamily: "Roboto-Medium",
@@ -35,12 +34,10 @@ const useStyles = makeStyles(theme => ({
   },
   searchClass:
   {
-
     marginLeft: '5px',
     border: '0px solid',
     width: '63px',
     height: '20px',
-    
   },
   selectClass:
   {
@@ -55,31 +52,6 @@ const useStyles = makeStyles(theme => ({
 }));
 
 
-const MyInput = withStyles({
-  root: {
-    backgroundColor: '#15244c',
-    paddingLeft: '3px',
-    fontFamily: 'Roboto-Regular',
-    fontSize: '8.53pt',
-    color: '#95c0e9',
-  },
-  input: {
-      "&::placeholder": {
-        color: "#95c0e9",
-        fontSize: 10
-     },
-   color: "#95c0e9", // if you also want to change the color of the input, this is the prop you'd use
-  },
-  underline: {
-    "&&&:before": {
-      borderBottom: "none"
-    },
-    "&&:after": {
-      borderBottom: "none"
-    }
-  }
-
-})(Input);
 
 const MyToggleButton = withStyles(theme => ({
   root: {
@@ -144,9 +116,9 @@ const TimeIntervalPanel = props => {
       {...rest}
       className={clsx(classes.root, className)}
     >
-      <Hidden xsDown smDown mdDown >
+      {/* <Hidden xsDown smDown mdDown > */}
      
-      {openSidebar != true && matches ? '' : <div style={{flex: 409, margin: '0px', padding: '0px'}}>
+      {/* {openSidebar != true && matches ? '' : <div style={{flex: 409, margin: '0px', padding: '0px'}}> */}
         <ToggleButtonGroup
           value={timevalue}
           exclusive
@@ -159,10 +131,11 @@ const TimeIntervalPanel = props => {
             </MyToggleButton>
           ))}
         </ToggleButtonGroup>
-     </div> }
+     </div> 
+    //  }
      
-      </Hidden>
-    </div>
+      // {/* </Hidden> */}
+    // </div>
   );
 };
 

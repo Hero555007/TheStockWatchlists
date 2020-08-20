@@ -12,6 +12,8 @@ import Routes from './Routes';
 import { Provider } from "react-redux"
 import store from "./redux/store/index";
 
+import ReactNotifications from 'react-notifications-component';
+
 const browserHistory = createBrowserHistory();
 
 validate.validators = {
@@ -42,6 +44,8 @@ export const styles = (theme) => ({
 class App extends Component {
   render() {
     return (
+      <div style={{height:'100%'}}>
+      <ReactNotifications />
       <Provider store={store}>
         <ThemeProvider theme={theme}>
           <Router history={browserHistory}>
@@ -49,6 +53,7 @@ class App extends Component {
           </Router>
         </ThemeProvider>
       </Provider>
+      </div>
     );
   }
 }

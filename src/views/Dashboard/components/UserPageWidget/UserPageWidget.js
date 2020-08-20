@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import MaterialTable, { MTableToolbar } from 'material-table';
+import MaterialTable from 'material-table';
 import { TradingViewWidget } from '../../components'
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
@@ -10,14 +10,11 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList } from 'react-window';
 import { Typography } from '@material-ui/core';
-import {saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, changeViewStatus, getcurrentstockprice, getwatchlisttemplate, validwatchlist} from '../../../../services/api/httpclient';
+import {saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, getcurrentstockprice, getwatchlisttemplate, validwatchlist} from '../../../../services/api/httpclient';
 import { connect } from "react-redux";
 import { setSymbolName } from '../../../../redux/actions';
 import { changeDashboardType } from '../../../../redux/actions';
-import { setAlert } from '../../../../redux/actions';
-import CheckBoxIcon from '@material-ui/icons/CheckBox';
-import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
-import Alert from '@material-ui/lab/Alert';
+import { setAlert, setNotification } from '../../../../redux/actions';
 import { Link as RouterLink } from 'react-router-dom';
 
 
@@ -29,30 +26,13 @@ function mapDispatchToProps(dispatch) {
     changeDashboardType:payload => dispatch(changeDashboardType(payload)),
     setSymbolName:payload => dispatch(setSymbolName(payload)),
     setAlert:(alertflag,alertsymbol) => dispatch(setAlert(alertflag, alertsymbol)),
+    setNotification:(fromname, fromimage,lastchattime,content) => dispatch(setNotification(fromname, fromimage,lastchattime,content))
   };
 }
 
-const useStyles = makeStyles(theme => ({
-    root: {
-        backgroundColor: '#12213f',
-        height : '100%',
-        width: '100%',
-        minHeight: '400px',
-        padding: '0px',
-        display: 'flex',
-        position: 'relative',
-        
-        [theme.breakpoints.down('sm')]: {
-            flexDirection: 'column',
-        },
-    },
-    table: {
-        width : '95%',
-        position : 'relative',
-        margin : '3% 2% 2%',
-        height : '60%'
-    }
-}));
+function refreshPage() {
+  window.location.reload(false);
+}
 
 const options =sector;
 const LISTBOX_PADDING = 8; // px
@@ -154,40 +134,42 @@ const useStyles1 = makeStyles({
   });
 
 const sectorOptions=[];
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 const UserPageWidget = (props) => {
-    const { className,username, useremail,userrole, dispatch, changeDashboardType, setSymbolName, setAlert, ...rest } = props;
-    const [widgetType, setWidgetType] = React.useState(0);
-    const handleChangeWidgetType = (type) => {
-        if (type != null)
-        {
-            setWidgetType(type);
-        }
-    }
+    const { className,username, useremail,userrole, dispatch, changeDashboardType, setSymbolName, setAlert, dense, pagination, watchid, setNotification, width } = props;
     const classes = useStyles1();
     const [userName, setUserName] = React.useState("");
     const [userEmail, setEmail] = React.useState("");
     const [userRole, setRole] = React.useState("");
+    const [densestring, setDensestring] = React.useState("default");
 
     React.useEffect(()=>{
-      if (username == "")
+      if (dense == true){
+        console.log("densestring-dense")
+        setDensestring("dense");
+      }
+      else{
+        console.log("densestring-default")
+        setDensestring("default");
+      }
+    },[dense])
+
+    React.useEffect(()=>{
+      if (username === "")
       {
         setUserName(localStorage.getItem('username'));
       }
       else{
         setUserName(username);
       }  
-      if (useremail == "")
+      if (useremail === "")
       {
         setEmail(localStorage.getItem('useremail'));
       }
       else{
         setEmail(useremail);
       }  
-      if (userrole == "")
+      if (userrole === "")
       {
         setRole(localStorage.getItem('userrole'));
       }
@@ -198,6 +180,8 @@ const UserPageWidget = (props) => {
   
     const initialList = [];
     const data = [];
+    const time = 1000 * 60 * 5;
+    //const time = 1000 * 30;
     const [value, setValue] = React.useState("");
     const [sectorvalue, setSectorValue] = React.useState("");
     const [symbol, setSymbol] = React.useState(initialList);
@@ -211,10 +195,9 @@ const UserPageWidget = (props) => {
     const [first, setFirst] = React.useState(true);
     const [publicIcon, setPublicIcon] = React.useState(false);
     const [timerId, setTimerId] = React.useState(null);
-    
 
     React.useEffect(()=>{
-      symbol.map(item =>{
+      (symbol || []).map(item =>{
         let payload = {
           "symbol": item,
         }
@@ -222,29 +205,61 @@ const UserPageWidget = (props) => {
         console.log('payload1', payload);
         getcurrentstockprice(payload).then( ret=>{
           console.log(ret);
-          // if (ret['data']['result'] == "failed" || state == undefined)
+          // if (ret['data']['result'] === "failed" || state === undefined)
           // {
           //   return;
           // }
-          setState(prevState => prevState.map(item_ => {
+          setState(prevState => (prevState || []).map(item_ => {
             console.log("item_",item_);
             const item = {...item_}
-            if (item.symbol == ret.data.symbol) {
-              if (item.currentstockprice == 0){
+            if (item.symbol === ret.data.symbol) {
+              if (item.currentstockprice === 0){
                 item.currentchange = 0;                
               }
               else{
-                item.currentchange =Math.round((ret.data.price-item.currentstockprice) / ret.data.price * 100 * 1000) /1000;
+                item.currentchange =ret.data.pricechange;
               }
               item.currentstockprice = ret.data.price;
-              item.addedpricechange = ret.data.pricechange;
+              item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
               if (item.alertprice != null && item.alertprice != "0")
               {
-                if ((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice) > 2.0){
+                console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
+                if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                  console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
                   setAlert("block", item.symbol);
-                  earningList.push(item.symbol);
+                  console.log("setnotification",userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol)
+                  setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                    console.log("setearninglist")
+                    setEarningList(()=>{
+                      const _earninglist = earningList || [];
+                      let flag = false;
+                      (earningList||[]).map(items=>{
+                        if (items == item.symbol)
+                        {
+                          flag = true;
+                        }
+                      })
+                      if (flag == false){
+                        _earninglist.push(item.symbol);
+                      }
+                      return _earninglist;
+                    })
+                    // (earningList||[]).push(item.symbol);
+                    // console.log("earningList",earningList);  
+                }
+                else{
+                  setEarningList(()=>{
+                    const _earninglist = [];
+                    (earningList||[]).map(items=>{
+                      if (items != item.symbol){
+                        _earninglist.push(items);
+                      }
+                    })
+                    return _earninglist;
+                  })
                 }
               }
+              console.log("endearninglist", earningList);
               return item;
             } else {
               return item;
@@ -255,7 +270,7 @@ const UserPageWidget = (props) => {
         });       
       });
       const timerID = setInterval(() => {
-        symbol.map(item =>{
+        (symbol || []).map(item =>{
           let payload = {
             "symbol": item,
           }
@@ -263,24 +278,56 @@ const UserPageWidget = (props) => {
             console.log('payload', payload);
             getcurrentstockprice(payload).then( ret=>{
               console.log("ret",ret);
-              // if (ret['data']['result'] == "failed" || state == undefined)
+              // if (ret['data']['result'] === "failed" || state === undefined)
               // {
               //   console.log("failed");
               //   return;
               // }
-              setState(prevState => prevState.map(item_ => {
+              setState(prevState => (prevState || []).map(item_ => {
                 console.log("item_", item_);
                 const item = {...item_}
-                if (item.symbol == ret.data.symbol) {
-                  item.currentchange =Math.round((ret.data.price-item.currentstockprice) / ret.data.price * 100 * 1000) /1000;
+                if (item.symbol === ret.data.symbol) {
+                  item.currentchange =ret.data.pricechange;
                   item.currentstockprice = ret.data.price;
-                  item.addedpricechange = ret.data.pricechange;
+                  item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
                   if (item.alertprice != null && item.alertprice != "0")
                   {
-                    if (parseFloat(item.currentstockprice) >= parseFloat(item.alertprice)){
+                    console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
+                    if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                      console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
                       setAlert("block", item.symbol);
+                      setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                      console.log("setearninglist")
+                      setEarningList(()=>{
+                        const _earninglist = earningList || [];
+                        let flag = false;
+                        (earningList||[]).map(items=>{
+                          if (items == item.symbol)
+                          {
+                            flag = true;
+                          }
+                        })
+                        if (flag == false){
+                          _earninglist.push(item.symbol);
+                        }
+                        return _earninglist;
+                      })
+                        // (earningList||[]).push(item.symbol);
+                      // console.log("earningList",earningList);  
                     }
+                    else{
+                      setEarningList(()=>{
+                        const _earninglist = [];
+                        (earningList|| []).map(items=>{
+                          if (items != item.symbol){
+                            _earninglist.push(items);
+                          }
+                        })
+                        return _earninglist;
+                      })
+                    }    
                   }
+                  console.log("endearninglist", earningList);
                   return item;
                 } else {
                   return item;
@@ -290,11 +337,14 @@ const UserPageWidget = (props) => {
             alert(err.error);
           });       
         });
-      }, 1000 * 15);
+      }, time);
       setTimerId((prevTimerId) => {
         clearInterval(prevTimerId);
         return timerID;
       });
+      // setStatus(()=>{
+      //   return !status;
+      // });
     },[symbol])  
 
       const getColumns = useCallback(() => {
@@ -326,19 +376,19 @@ const UserPageWidget = (props) => {
               
                 getsector(payload).then( ret=>{
                   setLoading(false);
-                if (ret['data'].result == 'ok'){
+                if (ret['data'].result === 'ok'){
                     if (sectorOptions.length > 0)
                     {
                         sectorOptions.pop();
                     }
-                    if (ret['data']['sector'] == "")
-                    {
-                      props.onChange("");
-                    }
+                    // if (ret['data']['sector'] === "")
+                    // {
+                    //   props.onChange("");
+                    // }
                     sectorOptions.push(ret['data']['sector']);
                     setSectorValue(ret['data']['sector']);
                 }
-                else if(ret['data'].result == 'fail'){
+                else if(ret['data'].result === 'fail'){
                     alert(ret['data'].message);
                 }
                 else {
@@ -365,64 +415,71 @@ const UserPageWidget = (props) => {
                   )
               },
             {
-              title: 'TradeTiming',
+              title: 'Trade\nTiming',
               field: 'tradetiming',
               lookup: { 0: 'Today', 1: 'Next Day' },
               hidden:!columndata['tradetiming'],
             },
             {
-              title: 'Short/Long',
+              title: 'Short\n/Long',
               field: 'shortorlong',
               lookup: { 0: 'Short', 1: 'Long' },
               hidden:!columndata['shortorlong'],
             },
             {
-              title: 'TradeTimeframe',
+              title: 'Trade\nTime\nframe',
               field: 'tradetimeframe',
               lookup: { 0: 'Intra day', 1: 'Swing', 2:'Position' },
               hidden:!columndata['tradetimeframe'],
             },
-            { title: '52WeeksHigh', field: 'yearhigh',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['yearhigh']},
-            { title: 'CurrentStockPrice', field: 'currentstockprice',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['currentprice']},
-            { title: 'Change(%)', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange']},
-            { title: 'EntryPrice', field: 'entryprice', type: 'numeric' , searchable:false,hidden:!columndata['entryprice']},
-            { title: 'Change(%)', field: 'entrychange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['entrychange']},
-            { title: 'StopLoss', field: 'stoploss', type: 'numeric' , searchable:false,hidden:!columndata['stoploss']},
-            { title: 'Change(%)', field: 'stopchange', type: 'numeric' , editable: 'never',searchable:false,hidden:!columndata['stoplosschange']},
-            { title: 'ExitPrice', field: 'exitprice', type: 'numeric' , searchable:false,hidden:!columndata['exitprice']},
-            { title: 'EarningReportDate', field:'earningdate', type:'date', editable:'never', searchable:false,hidden:!columndata['earningdate'],
+            { title: '52\nWeeks\nHigh', field: 'yearhigh',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['yearhigh']},
+            { title: 'Current\nStock\nPrice', field: 'currentstockprice',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['currentprice']},
+            { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200},
+            { title: 'Entry\nPrice', field: 'entryprice', type: 'numeric' , searchable:false,hidden:!columndata['entryprice']},
+            { title: 'Change', field: 'entrychange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['entrychange']},
+            { title: 'Stop\nLoss', field: 'stoploss', type: 'numeric' , searchable:false,hidden:!columndata['stoploss']},
+            { title: 'Change', field: 'stopchange', type: 'numeric' , editable: 'never',searchable:false,hidden:!columndata['stoplosschange']},
+            { title: 'Exit\nPrice', field: 'exitprice', type: 'numeric' , searchable:false,hidden:!columndata['exitprice']},
+            { title: 'Earning\nReportDate', field:'earningdate', type:'date', editable:'never', searchable:false,hidden:!columndata['earningdate'],
               cellStyle: (index, rowdata) =>{
                 let bufIndex = [];
-                if (rowdata != undefined){
+                if (rowdata != undefined && alertList.length == 0){
                   for (var i = 0; i < alertList.length; i++)
                   {
-                    if (rowdata.symbol == alertList[i]){
+                    if (rowdata.symbol === alertList[i]){
                       return ({backgroundColor: "#ffcdd2"});
                     }
                   }  
+                }
+                else{
+                  return ({backgroundColor: "#ffffff"});
                 }
               }
               // cellStyle:{
               //   backgroundColor: '#039be5',
               // }
             },
-            { title: 'AlertPrice', field: 'alertprice', type: 'numeric' , searchable:false,hidden:!columndata['alertprice'],
+            { title: 'Alert\nPrice', field: 'alertprice', type: 'numeric' , searchable:false,hidden:!columndata['alertprice'],
               cellStyle: (index, rowdata) =>{
                 let bufIndex = [];
-                if (rowdata != undefined) {
-                  for (var i = 0; i < earningList.length; i++)
+                if (rowdata != undefined && earningList != undefined) {
+                  for (var i = 0; i < (earningList||[]).length; i++)
                   {
-                    if (rowdata.symbol == earningList[i]){
+                    if (rowdata.symbol === earningList[i]){
                       return ({backgroundColor: "#ffcdd2"});
                     }
                   }  
                 }
+                else{
+                  return ({backgroundColor: "#ffffff"});
+                }
               }          
             },
-            { title: 'RewardInR', field: 'rewardprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['rewardinR']},
-            { title: 'InitialPrice', field: 'addedprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedprice']},
-            { title: 'AddedChange(%)', field: 'addedpricechange', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedpricechange']},
-            { title: 'Date Added', field: 'dateadded', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['dateadded']},
+            { title: 'Alert\nPrice\nChange', field: 'alertpricechange', type: 'numeric',  searchable:false ,hidden:!columndata['alertprice']},
+            { title: 'Reward\nInR', field: 'rewardprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['rewardinR']},
+            { title: 'Initial\nPrice', field: 'addedprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedprice']},
+            { title: 'Added\nChange', field: 'addedpricechange', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedpricechange']},
+            { title: 'Date Added', field: 'dateadded', type: 'date',  editable: 'never', searchable:false ,hidden:!columndata['dateadded']},
             { title: 'Comment', field: 'comment', type:'string', hidden:!columndata['comment'],
               editComponent: props => (
                 <TextField
@@ -440,13 +497,13 @@ const UserPageWidget = (props) => {
               )
             },
             {
-              title: 'TradeScore',
+              title: 'Trade\nScore',
               field: 'tradescore',
               lookup: { 0: 'A', 1: 'B', 2:'C', 3:'D', 4:'E' },
               hidden:!columndata['tradescore'],
             },
           ];
-      }, [columndata])
+      }, [columndata, earningList])
 
       React.useEffect(() => {
         if (!userName.length || !userEmail.length) return;
@@ -455,15 +512,15 @@ const UserPageWidget = (props) => {
           "useremail" : userEmail,
         }
         getwatchlisttemplate(payload).then(ret=>{
-          if (ret['data'].result == 'ok')
+          if (ret['data'].result === 'ok')
           {
             setColumnData(ret['data']['data']);
               getWatchlist(payload).then( ret=>{
                 console.log('getwachlist return', ret);
-                setState(ret.data.data.map(item=>{
+                setState((ret?.data?.data || []).map(item=>{
                   if (item.earningdate != ""){
                     item.earningdate = new Date(item.earningdate);
-                    if (item.earningflag == true)
+                    if (item.earningflag === true)
                     {
                       alertList.push(item.symbol);
                     }
@@ -472,7 +529,7 @@ const UserPageWidget = (props) => {
                     console.log("aavv");
                     exitList.push(item['symbol']);
                   }
-                  if (item['viewstatus'] == "True"){
+                  if (item['viewstatus'] === "True"){
                     setPublicIcon(true);
                   }
                   else{
@@ -480,11 +537,11 @@ const UserPageWidget = (props) => {
                   }
                   return item;  
                 }))
-                if (first == true)
+                if (first === true)
                 {
                   setSymbol(()=>{
                     const symboldata = [...symbol];
-                    ret.data.data.map(item=>{
+                    (ret?.data?.data || []).map(item=>{
                       symboldata.push(item.symbol);
                     });
 
@@ -501,7 +558,7 @@ const UserPageWidget = (props) => {
               }, err => {
               });  
           }
-          if (ret['data'].result == 'failed db')
+          if (ret['data'].result === 'failed db')
           {
             return (
               <RouterLink to='/settings' />
@@ -510,12 +567,9 @@ const UserPageWidget = (props) => {
         }, err=>{
 
         });
-
-
-      }, [userName, userEmail,status])
+      }, [userName, userEmail, status])
       
     return (
-
             <MaterialTable 
             title="Watchlist for stock market"
             columns={getColumns()}
@@ -523,72 +577,89 @@ const UserPageWidget = (props) => {
             data={state}
             isLoading={loading}
             options={{
-              paging:false,
+              rowStyle:{
+                padding:'1px'
+              },
+              padding:densestring,
+              doubleHorizontalScroll:true,
+              paging:true,
+              emptyRowsWhenPaging:false,
+              paginationType:'stepped',
+              addRowPosition:'first',
               rowStyle: (data, index) =>{
                 let bufIndex = [];
-                exitList.map(item=>{
-                  if (item == data.symbol)
+                (exitList || []).map(item=>{
+                  if (item === data.symbol)
                   {
                     bufIndex.push(index);
                   }
                 })
                 for (var i=0; i<bufIndex.length; i++)
                 {
-                  if (index == bufIndex[i])
+                  if (index === bufIndex[i])
                   {
-                    return { backgroundColor: "#26c6da" }
+                    return {padding:'1px', backgroundColor: "#26c6da", fontSize:"14px", fontFamily:"'Open Sans', sans-serif", height:"20px", paddingTop:"0px", paddingBottom:"0px" }
                   }  
                 }
+                return { padding:'1px', fontSize:"14px", fontFamily:"'Open Sans', sans-serif", paddingTop:"0px", paddingBottom:"0px" }
               }
 
+            }}
+            onColumnDragged={(sourceIndex, destinationIndex)=>{
+              console.log("source", sourceIndex);
+              console.log("dest", destinationIndex);
             }}
             detailPanel={rowData => {
                 // setSymbolName(rowData['symbol']);
                 // console.log("rowdata",rowData['symbol']);
+                console.log("width", width);
+                var bwidth = parseInt(width) - 120;
+                bwidth = bwidth.toString() + "px";
+                console.log("bwidth", bwidth);
                 return (
-                    <div height="80%" width="200px" style={{marginLeft:"20px", marginRight:"20px", marginBottom:"10px", display:"flex"}}>
+                    <div height="80%" style={{marginLeft:"25px", marginRight:"20px", marginBottom:"10px", display:"flex", width:bwidth}}>
                         <TradingViewWidget symbol={rowData['symbol']}/>
                     </div>
                     )
               }}
-              actions={[
-                {
-                  icon: publicIcon? CheckBoxIcon: CheckBoxOutlineBlankIcon,
-                  tooltip: 'Set private/public',
-                  onClick: (event, rowData) => {
-                    let payload = {
-                      "username": userName,
-                      "useremail": userEmail,
-                      "symbol": rowData['symbol'],
-                      "status" : !publicIcon,
-                    }
-                    setPublicIcon(!publicIcon);
-                    console.log("status", payload['status'])
+              // actions={[
+              //   {
+              //     icon: publicIcon? CheckBoxIcon: CheckBoxOutlineBlankIcon,
+              //     tooltip: 'Set private/public',
+              //     onClick: (event, rowData) => {
+              //       let payload = {
+              //         "username": userName,
+              //         "useremail": userEmail,
+              //         "symbol": rowData['symbol'],
+              //         "status" : !publicIcon,
+              //       }
+              //       setPublicIcon(!publicIcon);
+              //       console.log("status", payload['status'])
               
-                    changeViewStatus(payload).then( ret=>{
-                      if (ret['data'].result == 'ok'){
-                        console.log("aa", ret['data']);
-                      }
-                      else if (ret['data'].result == 'fail')
-                      {
-                        alert(ret['data'].message);
-                      }
-                      else{
-                        alert(ret['data'].error);
-                      }
-                    }, err => {
-                      alert(err.error);
-                    });    
-                    return   (
-                      <div>
-                        <br />
-                        <Alert>aaa</Alert>
-                        {/* <SnackbarContent  message={'SUCCESS - This is a regular notification made with color="success"'} close color="success" icon={AddAlert}/> */}
-                      </div>  
-                    )                          
-                  }
-                }
-              ]}
+              //       changeViewStatus(payload).then( ret=>{
+              //         if (ret['data'].result === 'ok'){
+              //           console.log("aa", ret['data']);
+              //         }
+              //         else if (ret['data'].result === 'fail')
+              //         {
+              //           alert(ret['data'].message);
+              //         }
+              //         else{
+              //           alert(ret['data'].error);
+              //         }
+              //       }, err => {
+              //         alert(err.error);
+              //       });    
+              //       return   (
+              //         <div>
+              //           <br />
+              //           <Alert>aaa</Alert>
+              //           {/* <SnackbarContent  message={'SUCCESS - This is a regular notification made with color="success"'} close color="success" icon={AddAlert}/> */}
+              //         </div>  
+              //       )                          
+              //     }
+              //   },
+              // ]}
               onRowClick={(event, rowData, togglePanel) =>{
               console.log("selected symbol", rowData['symbol']);
               // setSymbolName(rowData['symbol']);
@@ -605,41 +676,45 @@ const UserPageWidget = (props) => {
                           setLoading(true);
                             console.log("prevdata", prevState);
                             const datas = [...prevState];
-                            if (newData['entryprice']==undefined)
+                            if (newData['entryprice']===undefined)
                             {
                               newData['entryprice'] = 0;
                             }
-                            if (newData['entrychange']==undefined)
+                            if (newData['entrychange']===undefined)
                             {
                               newData['entrychange'] = 0;
                             }
-                            if (newData['stoploss']==undefined)
+                            if (newData['stoploss']===undefined)
                             {
                               newData['stoploss'] = 0;
                             }
-                            if (newData['exitprice']==undefined)
+                            if (newData['exitprice']===undefined)
                             {
                               newData['exitprice'] = 0;
                             }
-                            if (newData['currentstockprice']==undefined)
+                            if (newData['currentstockprice']===undefined)
                             {
                               newData['currentstockprice'] = 0;
                             }
-                            if (newData['currentchange']==undefined)
+                            if (newData['currentchange']===undefined)
                             {
                               newData['currentchange'] = 0;
                             }
-                            if (newData['addedprice']==undefined)
+                            if (newData['addedprice']===undefined)
                             {
                               newData['addedprice'] = 0;
                             }
-                            if (newData['comment']==undefined)
+                            if (newData['comment']===undefined)
                             {
                               newData['comment'] = "";
                             }
-                            if (newData['earningdate'] == undefined)
+                            if (newData['earningdate'] === undefined)
                             {
                               newData['earningdate'] = "";
+                            }
+                            if (newData['alertpricechange'] === undefined)
+                            {
+                              newData['alertpricechange'] = 5.0;
                             }
                             if (newData['exitprice'] != 0){
                               exitList.push(newData['symbol']);
@@ -658,13 +733,13 @@ const UserPageWidget = (props) => {
                             else{
                               newData['rewardprice'] = 0;
                             }
-                            while(sectorvalue == "")
-                            {
-                              return;
-                            }
+                            // while(sectorvalue === "")
+                            // {
+                            //   return;
+                            // }
                             newData['sector'] = sectorvalue;
                             console.log("new data", newData);
-                            if (newData['symbol'] == undefined)
+                            if (newData['symbol'] === undefined)
                             {
                               alert("No symbol. Please select the symbol...");
                             }
@@ -675,7 +750,7 @@ const UserPageWidget = (props) => {
                                 "userrole": userRole,
                               }
                               validwatchlist(payload2).then(ret=>{
-                                if(ret['data'].result == 'ok'){
+                                if(ret['data'].result === 'ok'){
                                   datas.push(newData);
 
                                   let payload = {
@@ -690,6 +765,7 @@ const UserPageWidget = (props) => {
                                     "stoploss": newData['stoploss'],
                                     "exitprice": newData['exitprice'],
                                     "alertprice": newData['alertprice'],
+                                    "alertpricechange": newData['alertpricechange'],
                                     "rewardprice": newData['rewardprice'],
                                     "dateadded" : newData['dateadded'],
                                     "comment" : newData['comment'],
@@ -698,20 +774,21 @@ const UserPageWidget = (props) => {
                                   }
                               
                                   saveWatchlist(payload).then( ret=>{
-                                    if (ret['data'].result == 'ok'){
+                                    if (ret['data'].result === 'ok'){
                                       bufsymbol = newData['symbol'];
+                                      setStatus(()=>{
+                                        return !status;
+                                      });
                                       setSymbol((prevSymbol)=>{
                                         const symboldata = [...prevSymbol];
                                         symboldata.push(bufsymbol);
                                         return symboldata;
                                       });                        
-                                      setStatus(()=>{
-                                        return !status;
-                                      });
                                       setLoading(false);
+                                      refreshPage();
                                       return  datas;
                                     }
-                                    else if(ret['data'].result == 'fail'){
+                                    else if(ret['data'].result === 'fail'){
                                       alert(ret['data'].message);
                                     }
                                     else {
@@ -721,7 +798,7 @@ const UserPageWidget = (props) => {
                                     alert(err.error);
                                   });  
                                 }
-                                else if(ret['data'].result == 'fail'){
+                                else if(ret['data'].result === 'fail'){
                                   alert(ret['data'].msg);
                                 }
                                 else {
@@ -754,6 +831,11 @@ const UserPageWidget = (props) => {
                             else{
                               newData['rewardprice'] = 0;
                             }
+                            if (newData['alertpricechange'] === undefined)
+                            {
+                              newData['alertpricechange'] = 5;
+                            }
+
                             let payload = {
                               "username": userName,
                               "useremail": userEmail,
@@ -766,6 +848,7 @@ const UserPageWidget = (props) => {
                               "stoploss": newData['stoploss'],
                               "exitprice": newData['exitprice'],
                               "alertprice": newData['alertprice'],
+                              "alertpricechange": newData['alertpricechange'],
                               "rewardprice": newData['rewardprice'],
                               "comment" : newData['comment'],
                               "earningdate" : newData['earningdate'],
@@ -773,12 +856,13 @@ const UserPageWidget = (props) => {
                             }
                         
                             updateWatchlist(payload).then( ret=>{
-                              if (ret['data'].result == 'ok'){
+                              if (ret['data'].result === 'ok'){
                                 console.log(ret['data']);
                                 setAlert("none", newData['symbol']);
                                 setStatus(!status);
+                                refreshPage();
                               }
-                              else if(ret['data'].result == 'fail'){
+                              else if(ret['data'].result === 'fail'){
                                 alert(ret['data'].message);
                               }
                               else {
@@ -805,11 +889,15 @@ const UserPageWidget = (props) => {
                             let payload = {
                               "username": userName,
                               "useremail": userEmail,
-                              "symbol": oldData['symbol']
+                              "symbol": oldData['symbol'],
+                              "tradetiming" : oldData['tradetiming'],
+                              "shortorlong" : oldData['shortorlong'],
+                              "tradetimeframe" : oldData['tradetimeframe']
                             }
                         
                             deleteWatchlist(payload).then( ret=>{
-                              if (ret['data'].result == 'ok'){
+                              if (ret['data'].result === 'ok'){
+                                console.log("deletewatchlist");
                                 setStatus(()=>{
                                   return !status;
                                 });
@@ -818,9 +906,10 @@ const UserPageWidget = (props) => {
                                   symboldata.pop(oldData['symbol']);
                                   return symboldata;
                                 });
+                                refreshPage();
                                 return datas ;
                               }
-                              else if(ret['data'].result == 'fail'){
+                              else if(ret['data'].result === 'fail'){
                                 alert(ret['data'].message);
                               }
                               else {

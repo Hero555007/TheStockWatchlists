@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import PerfectScrollbar from 'react-perfect-scrollbar';
 import { makeStyles } from '@material-ui/styles';
+import { connect } from "react-redux";
+import {deletefollower,getfollowerslist} from '../../../../services/api/httpclient';
 import {
   Card,
   CardActions,
@@ -16,10 +17,19 @@ import {
   TableHead,
   TableRow,
   Typography,
-  TablePagination
+  TablePagination,
+  Button
 } from '@material-ui/core';
 
 import { getInitials } from 'helpers';
+
+const mapStateToProps = state => {
+  return { useremail:state.user.useremail};
+};
+function mapDispatchToProps(dispatch) {
+  return {
+  };
+}
 
 const useStyles = makeStyles(theme => ({
   root: {},
@@ -27,7 +37,7 @@ const useStyles = makeStyles(theme => ({
     padding: 0
   },
   inner: {
-    minWidth: 1050
+    minWidth: 300
   },
   nameContainer: {
     display: 'flex',
@@ -42,21 +52,36 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const UsersTable = props => {
-  const { className, users, ...rest } = props;
+  const { className, users,  useremail, ...rest } = props;
 
   const classes = useStyles();
 
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [page, setPage] = useState(0);
+  const [userEmail, setEmail] = React.useState("");
+  const [Users, setUsers] = React.useState([]);
+
+  React.useEffect(()=>{
+    setUsers(users);
+  },[users]);
+  
+  React.useEffect(()=>{
+    if (useremail === "")
+    {
+      setEmail(localStorage.getItem('useremail'));
+    }
+    else{
+      setEmail(useremail);
+    }  
+  },[useremail]);
 
   const handleSelectAll = event => {
-    const { users } = props;
 
     let selectedUsers;
 
     if (event.target.checked) {
-      selectedUsers = users.map(user => user.id);
+      selectedUsers = Users.map(user => user.id);
     } else {
       selectedUsers = [];
     }
@@ -92,6 +117,26 @@ const UsersTable = props => {
     setRowsPerPage(event.target.value);
   };
 
+  const handleRemove = (sideEmail) =>{
+    let payload={
+      'useremail' : userEmail,
+      'sideemail' : sideEmail
+    }
+    console.log("removefollowers", payload);
+    deletefollower(payload).then(ret=>{
+      if (ret['data']['result'] === 'ok'){
+        console.log("userfollowers",ret['data']['data']);
+        console.log("userfollowers", payload);
+        getfollowerslist(payload).then(ret=>{
+          if (ret['data']['result'] === 'ok'){
+            console.log("userfollowers",ret['data']['data']);
+            setUsers(ret['data']['data']);
+          }
+        })
+      }
+    })
+  };
+
   return (
     <Card
       {...rest}
@@ -105,59 +150,61 @@ const UsersTable = props => {
                 <TableRow>
                   <TableCell padding="checkbox">
                     <Checkbox
-                      checked={selectedUsers.length === users.length}
+                      checked={selectedUsers.length === Users.length}
                       color="primary"
                       indeterminate={
                         selectedUsers.length > 0 &&
-                        selectedUsers.length < users.length
+                        selectedUsers.length < Users.length
                       }
                       onChange={handleSelectAll}
                     />
                   </TableCell>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Email</TableCell>
+                  <TableCell align="center">Name</TableCell>
+                  {/* <TableCell>Email</TableCell>
                   <TableCell>Location</TableCell>
-                  <TableCell>Phone</TableCell>
-                  <TableCell>Registration date</TableCell>
+                  <TableCell>Phone</TableCell> */}
+                  <TableCell align="center">Action</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.slice(0, rowsPerPage).map(user => (
-                  <TableRow
-                    className={classes.tableRow}
-                    hover
-                    key={user.id}
-                    selected={selectedUsers.indexOf(user.id) !== -1}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        checked={selectedUsers.indexOf(user.id) !== -1}
-                        color="primary"
-                        onChange={event => handleSelectOne(event, user.id)}
-                        value="true"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className={classes.nameContainer}>
-                        <Avatar
-                          className={classes.avatar}
-                          src={user.avatarUrl}
-                        >
-                          {getInitials(user.name)}
-                        </Avatar>
-                        <Typography variant="body1">{user.name}</Typography>
-                      </div>
-                    </TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      {user.address.city}, {user.address.state},{' '}
-                      {user.address.country}
-                    </TableCell>
-                    <TableCell>{user.phone}</TableCell>
-                    <TableCell>
-                      {moment(user.createdAt).format('DD/MM/YYYY')}
-                    </TableCell>
-                  </TableRow>
+                {Users.slice(0, rowsPerPage).map(user => (
+                  <>
+                    <TableRow
+                      className={classes.tableRow}
+                      hover
+                      key={user.id}
+                      selected={selectedUsers.indexOf(user.id) !== -1}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
+                          checked={selectedUsers.indexOf(user.id) !== -1}
+                          color="primary"
+                          onChange={event => handleSelectOne(event, user.id)}
+                          value="true"
+                        />
+                      </TableCell>
+                      <TableCell align="center">
+                        <div className={classes.nameContainer}>
+                          <Avatar
+                            className={classes.avatar}
+                            src={user.avatarUrl}
+                          >
+                            {getInitials(user.name)}
+                          </Avatar>
+                          <Typography variant="body1">{user.name}</Typography>
+                        </div>
+                      </TableCell >
+                      {/* <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        {user.address.country}
+                      </TableCell>
+                      <TableCell>{user.phone}</TableCell> */}
+                      <TableCell align="center">
+                        <Button variant="outlined" color="primary" onClick={()=>handleRemove(user.email)} >Remove</Button>
+                      </TableCell>
+                    </TableRow>
+                    
+                  </>
                 ))}
               </TableBody>
             </Table>
@@ -167,7 +214,7 @@ const UsersTable = props => {
       <CardActions className={classes.actions}>
         <TablePagination
           component="div"
-          count={users.length}
+          count={Users.length}
           onChangePage={handlePageChange}
           onChangeRowsPerPage={handleRowsPerPageChange}
           page={page}
@@ -184,4 +231,4 @@ UsersTable.propTypes = {
   users: PropTypes.array.isRequired
 };
 
-export default UsersTable;
+export default connect(mapStateToProps, mapDispatchToProps)(UsersTable);

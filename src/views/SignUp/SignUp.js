@@ -4,6 +4,9 @@ import PropTypes from 'prop-types';
 import validate from 'validate.js';
 import { makeStyles } from '@material-ui/styles';
 import {signup} from './../../services/api/httpclient';
+import {setValidationToken, setUserName} from './../../redux/actions'
+import {connect} from 'react-redux';
+
 import {
   Grid,
   Button,
@@ -15,8 +18,15 @@ import {
   Typography
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import ReCAPTCHA from 'react-google-recaptcha'
 
 const schema = {
+  nickName: {
+    presence: { allowEmpty: false, message: 'is required' },
+    length: {
+      maximum: 32
+    }
+  },
   firstName: {
     presence: { allowEmpty: false, message: 'is required' },
     length: {
@@ -142,7 +152,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const SignUp = props => {
-  const { history } = props;
+  const { history,dispatch } = props;
 
   const classes = useStyles();
 
@@ -152,16 +162,24 @@ const SignUp = props => {
     touched: {},
     errors: {}
   });
+  const [isverified, setIsverified] = React.useState(false);
+  const recaptchaRef = React.createRef();
+
 
   useEffect(() => {
     const errors = validate(formState.values, schema);
 
     setFormState(formState => ({
       ...formState,
-      isValid: errors ? false : true,
+      isValid: (errors ? false : true) && isverified ,
       errors: errors || {}
     }));
-  }, [formState.values]);
+  }, [formState.values, isverified]);
+  const onSubmit = () => {
+    const recaptchaValue = recaptchaRef.current.getValue();
+    this.props.onSubmit(recaptchaValue);
+  }
+
 
   const handleChange = event => {
     event.persist();
@@ -188,35 +206,50 @@ const SignUp = props => {
 
   const handleSignUp = event => {
     event.preventDefault();
-    let payload = {
-      "firstName" : formState.values.firstName,
-      "lastName" : formState.values.lastName,
-      "email": formState.values.email,
-      "password": formState.values.password,
-      "role": "2",
+    if (isverified)
+    {
+      let payload = {
+        "nickName" : formState.values.nickName,
+        "firstName" : formState.values.firstName,
+        "lastName" : formState.values.lastName,
+        "email": formState.values.email,
+        "password": formState.values.password,
+        "role": "2",
+      }
+      signup(payload).then( ret=>{
+        if (ret['data'].result === 'ok'){
+          dispatch(setUserName(formState.values.nickName, formState.values.email, "",""));
+//          dispatch(setValidationToken(ret['data']['token']));
+          history.push('/validation');
+        }
+        else if (ret['data'].result === 'fail')
+        {
+          alert(ret['data'].message);
+          history.push('/sign-up');
+        }
+        else{
+          alert(ret['data'].error);
+          history.push('/sign-up');
+        }
+      }, err => {
+        alert(err.error);
+        history.push('/sign-up');
+      });
     }
-    signup(payload).then( ret=>{
-      if (ret['data'].result == 'ok'){
-        history.push('/sign-in');
-      }
-      else if (ret['data'].result == 'fail')
-      {
-        alert(ret['data'].message);
-        history.push('/sign-up');
-      }
-      else{
-        alert(ret['data'].error);
-        history.push('/sign-up');
-      }
-    }, err => {
-      alert(err.error);
-      history.push('/sign-up');
-    });
+    else{
+
+    }
 };
 
   const hasError = field =>
     formState.touched[field] && formState.errors[field] ? true : false;
 
+  const recaptchaverified = ()=>{
+    setIsverified(true);
+  }
+  const recaptchatexpired = ()=>{
+    setIsverified(false);
+  }
   return (
     <div className={classes.root}>
       <Grid
@@ -266,6 +299,20 @@ const SignUp = props => {
                 </Typography>
                 <TextField
                   className={classes.textField}
+                  error={hasError('nickName')}
+                  fullWidth
+                  helperText={
+                    hasError('nickName') ? formState.errors.nickName[0] : null
+                  }
+                  label="Nick name"
+                  name="nickName"
+                  onChange={handleChange}
+                  type="text"
+                  value={formState.values.nickName || ''}
+                  variant="outlined"
+                />
+                <TextField
+                  className={classes.textField}
                   error={hasError('firstName')}
                   fullWidth
                   helperText={
@@ -306,6 +353,12 @@ const SignUp = props => {
                   value={formState.values.email || ''}
                   variant="outlined"
                 />
+                <Typography
+                  color="textSecondary"
+                  style={{marginLeft:"5px"}}
+                >
+                  Your email is not visible to other users
+                </Typography>                
                 <TextField
                   className={classes.textField}
                   error={hasError('password')}
@@ -320,6 +373,15 @@ const SignUp = props => {
                   value={formState.values.password || ''}
                   variant="outlined"
                 />
+                <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
+                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                    onChange={recaptchaverified}
+                    onExpired={recaptchatexpired}
+                  />
+                </form>
                 <div className={classes.policy}>
                   <Checkbox
                     checked={formState.values.policy || false}
@@ -387,4 +449,4 @@ SignUp.propTypes = {
   history: PropTypes.object
 };
 
-export default withRouter(SignUp);
+export default connect()(withRouter(SignUp));

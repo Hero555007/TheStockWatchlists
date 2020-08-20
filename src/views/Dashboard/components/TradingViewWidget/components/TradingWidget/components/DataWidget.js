@@ -1,6 +1,6 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/styles';
-import { Grid, Typography } from '@material-ui/core';
+import { Grid } from '@material-ui/core';
 import Icon from '@material-ui/core/Icon';
 
 const useStyles = makeStyles(theme => ({
@@ -13,13 +13,11 @@ const useStyles = makeStyles(theme => ({
     // flexDirection: 'column',
   },
   titleClass: {
-    fontFamily: 'Roboto-Medium',
     fontSize: '10px',
     color: '#95c0e9',
     marginLeft: '5px'
   },
   coinLabelClass: {
-    fontFamily: 'Roboto-Medium',
     fontSize: '16px',
     color: 'white',
     marginLeft: '5px'
@@ -33,28 +31,16 @@ const useStyles = makeStyles(theme => ({
     flexDirection: 'column'
   },
   paragraphTitleClass:{
-    fontFamily: 'Roboto-Medium',
     fontSize: '10px',
     color: '#95c0e9',
   },
   paragraphContentClass:{
     marginTop: '10px',
-    fontFamily: 'Roboto-Regular',
     fontSize: '13px',
     color: 'white',
   }
 }));
-const Paragraph = props =>
-{
-  const { className, title, content, ...rest } = props;
-  const classes = useStyles();
-  return(
-    <div className={classes.paragraphRootClass}>
-      <div className={classes.paragraphTitleClass}>{title}</div>
-      <div className={classes.paragraphContentClass}>{content}</div>
-    </div>
-  )
-};
+
 const DataWidget = () => {
   const classes = useStyles();
 
@@ -72,7 +58,6 @@ const DataWidget = () => {
         >
           <div style={{width: '100%', height: '100%', display: 'flex', flexDirection: 'column', padding: '20px'}}>
             <Icon style={{marginRight: '10px', width: '45px', height: '45px', justifyContent: 'center'}}>
-              <img src="images/btc_usd_big.png"/>
             </Icon>
             <div className={classes.titleClass} style={{marginTop: '30px'}}>NAME</div>
             <div className={classes.coinLabelClass} style={{marginTop: '15px'}}></div>

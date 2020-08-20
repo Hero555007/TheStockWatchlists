@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
+import {getearningstocks} from '../../../../services/api/httpclient';
 import {
   Card,
   CardHeader,
@@ -15,34 +16,41 @@ import {
   ListItemText,
   IconButton
 } from '@material-ui/core';
-import ArrowRightIcon from '@material-ui/icons/ArrowRight';
-import MoreVertIcon from '@material-ui/icons/MoreVert';
-import ArrowLeftIcon from '@material-ui/icons/ArrowLeft';
-
-import mockData from './data';
+import { before, after } from 'underscore';
+import Axios from 'axios';
 
 const useStyles = makeStyles(() => ({
   root: {
     height: '100%'
   },
   content: {
-    padding: 0
+    padding: 0,
+    maxHeight:'350px',
+    minHeight:"350px",
+    overflowY:'scroll'
   },
   image: {
     height: 48,
-    width: 48
+    width: 48,
   },
   actions: {
     justifyContent: 'flex-end'
+  },
+  img:{
+    '$before':{
+      display:'none'
+    }
   }
 }));
 
 const EarningReportStocks = props => {
-  const { className, ...rest } = props;
+  const { className, products, ...rest } = props;
 
   const classes = useStyles();
-
-  const [products] = useState(mockData);
+  const getImagename=()=>{
+    console.log("erorrmessage");
+    return this.src='images/avatars/avatar_man.png';
+  };
 
   return (
     <Card
@@ -63,7 +71,6 @@ const EarningReportStocks = props => {
             >
               <ListItemAvatar>
                 <img
-                  alt="Product"
                   className={classes.image}
                   src={product.imageUrl}
                 />
@@ -78,7 +85,7 @@ const EarningReportStocks = props => {
         </List>
       </CardContent>
       <Divider />
-      <CardActions className={classes.actions}>
+      {/* <CardActions className={classes.actions}>
         <Button
             color="primary"
             size="small"
@@ -93,7 +100,7 @@ const EarningReportStocks = props => {
         >
           Next <ArrowRightIcon />
         </Button>
-      </CardActions>
+      </CardActions> */}
     </Card>
   );
 };

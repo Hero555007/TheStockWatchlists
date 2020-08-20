@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import { Button } from '@material-ui/core';
 
 import { SearchInput } from 'components';
 
@@ -29,10 +28,13 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const UsersToolbar = props => {
-  const { className, ...rest } = props;
+  const { className, onChange, ...rest } = props;
 
   const classes = useStyles();
-
+  const handlechange = (event)=>{
+    console.log("searchtextformostfollowerslist", event.target.value);
+    onChange(event.target.value);
+  }
   return (
     <div
       {...rest}
@@ -53,6 +55,7 @@ const UsersToolbar = props => {
         <SearchInput
           className={classes.searchInput}
           placeholder="Search user"
+          onChange = {handlechange}
         />
       </div>
     </div>
