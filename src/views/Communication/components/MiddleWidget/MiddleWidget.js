@@ -141,6 +141,8 @@ const MiddleWidget = (props) => {
   }
 
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if (!userName.length || !userEmail.length ) return;
     if (sideEmail == "")
     {
@@ -153,8 +155,11 @@ const MiddleWidget = (props) => {
         'from' : userEmail,
         'to' : sideEmail
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
       console.log("messagetest", payload);
       getchat(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] == 'ok'){
           console.log("payload", payload);
           console.log("result", ret);
@@ -175,7 +180,10 @@ const MiddleWidget = (props) => {
     let payload1 = {
       'useremail' : userEmail
     }
+    let token1 = jwt.encode(payload1, secret);
+    payload1 = {"token": token1};    
     getuserdata(payload1).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if(ret['data']['result'] === 'ok'){
         console.log("pmsetting",ret['data']['data']['privatemessageflag']);
         setMessageflag(ret['data']['data']['privatemessageflag']);
@@ -185,6 +193,7 @@ const MiddleWidget = (props) => {
   },[userName, userEmail,sideEmail])
 
   const handlechange=(event)=>{
+    console.log("messagetargetvalue", event.target.value);
     if(event.target.value == ""){
       setDisableButton(true);
     }
@@ -196,6 +205,9 @@ const MiddleWidget = (props) => {
   }
 
   const SendMessage=()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
+    console.log("messageflag", messageflag, MessagFlag);
     if (messageflag == false){
       store.addNotification({
         title: 'Info',
@@ -228,7 +240,10 @@ const MiddleWidget = (props) => {
       'to' : sideEmail,
       'content' : message
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     importchat(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] == 'ok'){
 
       }
@@ -243,6 +258,8 @@ const MiddleWidget = (props) => {
 
 
   const handleDeleteMessage = (text, time)=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     console.log("messagedeletepropscheck",text, time);
     let payload = {
       'from' : userEmail,
@@ -250,14 +267,19 @@ const MiddleWidget = (props) => {
       'content' : text,
       'messagedate' : time
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     console.log("deletemessagepayload", payload);
     deletechat(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] == 'ok')
       {
         let payload1 = {
           'from' : userEmail,
           'to' : sideEmail
         }
+        let token1 = jwt.encode(payload1, secret);
+        payload1 = {"token": token1};      
         getchat(payload1).then(ret=>{
           if (ret['data']['result'] == 'ok'){
             setDatas(ret['data']['data']);

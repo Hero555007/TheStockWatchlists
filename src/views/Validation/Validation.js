@@ -7,7 +7,9 @@ import {Button, Typography, IconButton} from '@material-ui/core'
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import { withRouter } from 'react-router-dom';
 import Timer from 'react-compound-timer'
-
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
 
 const mapStateToProps = state => {
     return { token:state.user.vtoken, useremail:state.user.useremail};
@@ -67,38 +69,83 @@ const Validation = (props) => {
         setCode(vals);
     };
     const verifyOTP=()=>{
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";
       let payload = {
         'useremail' : userEmail,
         'token' : code,
         'flag' : 'true'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};
       activeverify(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] == 'ok'){
           let payload1 = {
             'email' : userEmail
           }  
+          let token1 = jwt.encode(payload1, secret);
+          payload1 = {"token": token1};
           setactive(payload1).then(ret=>{
+            ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
             if (ret['data']['result'] == 'ok'){
+              store.addNotification({
+                title: 'Success',
+                message: 'sign up proccess was done, you now able to login',
+                type: 'success',                         // 'default', 'success', 'info', 'warning'
+                container: 'top-right',                // where to position the notifications
+                animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+                animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+                dismiss: {
+                  duration: 3000
+                }
+              })    
               history.push('/sign-in');
             }
           })
         }
         else{
           if (ret['data']['message']== 'activecode'){
-            alert("invalid activecode");
+            store.addNotification({
+              title: 'Error',
+              message: 'invalid activecode',
+              type: 'success',                         // 'default', 'success', 'info', 'warning'
+              container: 'top-right',                // where to position the notifications
+              animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+              animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+              dismiss: {
+                duration: 3000
+              }
+            })    
           }
           if (ret['data']['message']== 'time'){
-            alert("time expired");
+            store.addNotification({
+              title: 'Error',
+              message: 'time expired',
+              type: 'success',                         // 'default', 'success', 'info', 'warning'
+              container: 'top-right',                // where to position the notifications
+              animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+              animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+              dismiss: {
+                duration: 3000
+              }
+            })    
           }
         }
       })
     }
     const resendOTP = ()=>{
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";
+
       let payload = {
         'email' : userEmail,
         'flag' : 'true'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};
       resendcode(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] == 'ok'){
           setFlag(false);
         }

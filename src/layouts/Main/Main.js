@@ -40,6 +40,9 @@ const Main = props => {
   const handleSidebarClose = () => {
     setOpenSidebar(false);
   };
+  const handleClose = (text) =>{
+    setOpenSidebar(text);
+  }
 
   const shouldOpenSidebar = isDesktop ? true : openSidebar;
 
@@ -55,6 +58,7 @@ const Main = props => {
         onClose={handleSidebarClose}
         open={shouldOpenSidebar}
         variant={isDesktop ? 'persistent' : 'temporary'}
+        closehandle={handleClose}
       />
       <main className={classes.content}>
         {children}

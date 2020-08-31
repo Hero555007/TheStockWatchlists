@@ -10,21 +10,22 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList } from 'react-window';
 import { Typography } from '@material-ui/core';
-import {saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, getcurrentstockprice, getwatchlisttemplate, validwatchlist} from '../../../../services/api/httpclient';
+import {getstockpriceintervaltime, saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, getcurrentstockprice, getwatchlisttemplate, validwatchlist} from '../../../../services/api/httpclient';
 import { connect } from "react-redux";
 import { setSymbolName } from '../../../../redux/actions';
 import { changeDashboardType } from '../../../../redux/actions';
-import { setAlert, setNotification } from '../../../../redux/actions';
+import { setAlert, setNotification, setTableSize } from '../../../../redux/actions';
 import { Link as RouterLink } from 'react-router-dom';
 
 
 const mapStateToProps = state => {
-  return { username:state.user.username, useremail:state.user.useremail, userrole:state.user.userrole, dashboard_type:state.common.dashboard_type};
+  return { username:state.user.username, useremail:state.user.useremail, userrole:state.user.userrole, dashboard_type:state.common.dashboard_type, tablesize : state.user.tablesize};
 };
 function mapDispatchToProps(dispatch) {
   return {
     changeDashboardType:payload => dispatch(changeDashboardType(payload)),
     setSymbolName:payload => dispatch(setSymbolName(payload)),
+    setTableSize:payload => dispatch(setTableSize(payload)),
     setAlert:(alertflag,alertsymbol) => dispatch(setAlert(alertflag, alertsymbol)),
     setNotification:(fromname, fromimage,lastchattime,content) => dispatch(setNotification(fromname, fromimage,lastchattime,content))
   };
@@ -136,7 +137,7 @@ const useStyles1 = makeStyles({
 const sectorOptions=[];
 
 const UserPageWidget = (props) => {
-    const { className,username, useremail,userrole, dispatch, changeDashboardType, setSymbolName, setAlert, dense, pagination, watchid, setNotification, width } = props;
+    const { className,username, useremail,userrole, dispatch, changeDashboardType, setSymbolName, setAlert, dense, pagination, watchid, setNotification, width, tablesize, ...rest } = props;
     const classes = useStyles1();
     const [userName, setUserName] = React.useState("");
     const [userEmail, setEmail] = React.useState("");
@@ -180,7 +181,7 @@ const UserPageWidget = (props) => {
   
     const initialList = [];
     const data = [];
-    const time = 1000 * 60 * 5;
+    const [time, setTimeInterval] = React.useState(1000 * 60 * 5); 
     //const time = 1000 * 30;
     const [value, setValue] = React.useState("");
     const [sectorvalue, setSectorValue] = React.useState("");
@@ -195,24 +196,47 @@ const UserPageWidget = (props) => {
     const [first, setFirst] = React.useState(true);
     const [publicIcon, setPublicIcon] = React.useState(false);
     const [timerId, setTimerId] = React.useState(null);
+    const jwt = require('jwt-simple');
+    const secret = "Hero-Hazan-Trading-Watchlist";
+    const [size, setSize] = React.useState(5);
+
+    React.useEffect(()=>{
+      console.log("localsotrageSize");
+      if (localStorage.key("TableSize") != null)
+      {
+        console.log("localsotrageSize", localStorage.getItem("TableSize"));
+        setSize(localStorage.getItem("TableSize"));
+      }
+      else{
+        setSize(5);
+      }
+    },[])
+    React.useEffect(()=>{
+      getstockpriceintervaltime().then(ret=>{
+        if (ret['data']['result'] == 'ok'){
+          setTimeInterval(parseInt(ret['data']['data']) * 1000 * 60);
+        }
+      })
+    },[])
 
     React.useEffect(()=>{
       (symbol || []).map(item =>{
         let payload = {
-          "symbol": item,
+          "symbol": item.symbol,
+          "symbolname" : item.symbolname
         }
         
         console.log('payload1', payload);
         getcurrentstockprice(payload).then( ret=>{
-          console.log(ret);
+          console.log("payload1ret", ret);
           // if (ret['data']['result'] === "failed" || state === undefined)
           // {
           //   return;
           // }
           setState(prevState => (prevState || []).map(item_ => {
-            console.log("item_",item_);
+            console.log("item_",item_, ret);
             const item = {...item_}
-            if (item.symbol === ret.data.symbol) {
+            if (item.symbolname === ret.data.symbolname) {
               if (item.currentstockprice === 0){
                 item.currentchange = 0;                
               }
@@ -226,7 +250,7 @@ const UserPageWidget = (props) => {
                 console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
                 if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
                   console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
-                  setAlert("block", item.symbol);
+                  setAlert("block", item.symbolname);
                   console.log("setnotification",userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol)
                   setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
                     console.log("setearninglist")
@@ -234,13 +258,13 @@ const UserPageWidget = (props) => {
                       const _earninglist = earningList || [];
                       let flag = false;
                       (earningList||[]).map(items=>{
-                        if (items == item.symbol)
+                        if (items.symbolname == item.symbolname)
                         {
                           flag = true;
                         }
                       })
                       if (flag == false){
-                        _earninglist.push(item.symbol);
+                        _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
                       }
                       return _earninglist;
                     })
@@ -251,8 +275,8 @@ const UserPageWidget = (props) => {
                   setEarningList(()=>{
                     const _earninglist = [];
                     (earningList||[]).map(items=>{
-                      if (items != item.symbol){
-                        _earninglist.push(items);
+                      if (items.symbolname != item.symbolname){
+                        _earninglist.push({"symbol":items.symbol,"symbolname":items.symbolname});
                       }
                     })
                     return _earninglist;
@@ -272,8 +296,9 @@ const UserPageWidget = (props) => {
       const timerID = setInterval(() => {
         (symbol || []).map(item =>{
           let payload = {
-            "symbol": item,
-          }
+              "symbol": item.symbol,
+              "symbolname" : item.symbolname
+            }
           
             console.log('payload', payload);
             getcurrentstockprice(payload).then( ret=>{
@@ -286,7 +311,7 @@ const UserPageWidget = (props) => {
               setState(prevState => (prevState || []).map(item_ => {
                 console.log("item_", item_);
                 const item = {...item_}
-                if (item.symbol === ret.data.symbol) {
+                if (item.symbolname === ret.data.symbolname) {
                   item.currentchange =ret.data.pricechange;
                   item.currentstockprice = ret.data.price;
                   item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
@@ -302,13 +327,13 @@ const UserPageWidget = (props) => {
                         const _earninglist = earningList || [];
                         let flag = false;
                         (earningList||[]).map(items=>{
-                          if (items == item.symbol)
+                          if (items.symbolname == item.symbolname)
                           {
                             flag = true;
                           }
                         })
                         if (flag == false){
-                          _earninglist.push(item.symbol);
+                          _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
                         }
                         return _earninglist;
                       })
@@ -319,8 +344,8 @@ const UserPageWidget = (props) => {
                       setEarningList(()=>{
                         const _earninglist = [];
                         (earningList|| []).map(items=>{
-                          if (items != item.symbol){
-                            _earninglist.push(items);
+                          if (items.symbolname != item.symbolname){
+                            _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
                           }
                         })
                         return _earninglist;
@@ -433,6 +458,7 @@ const UserPageWidget = (props) => {
               hidden:!columndata['tradetimeframe'],
             },
             { title: '52\nWeeks\nHigh', field: 'yearhigh',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['yearhigh']},
+            { title: 'SymbolName', field: 'symbolname',editable: 'never', searchable:false ,hidden:true},
             { title: 'Current\nStock\nPrice', field: 'currentstockprice',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['currentprice']},
             { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200},
             { title: 'Entry\nPrice', field: 'entryprice', type: 'numeric' , searchable:false,hidden:!columndata['entryprice']},
@@ -443,10 +469,10 @@ const UserPageWidget = (props) => {
             { title: 'Earning\nReportDate', field:'earningdate', type:'date', editable:'never', searchable:false,hidden:!columndata['earningdate'],
               cellStyle: (index, rowdata) =>{
                 let bufIndex = [];
-                if (rowdata != undefined && alertList.length == 0){
-                  for (var i = 0; i < alertList.length; i++)
+                if (rowdata != undefined && alertList != undefined){
+                  for (var i = 0; i < (alertList || []).length; i++)
                   {
-                    if (rowdata.symbol === alertList[i]){
+                    if (rowdata.symbolname === alertList[i].symbolname){
                       return ({backgroundColor: "#ffcdd2"});
                     }
                   }  
@@ -465,7 +491,7 @@ const UserPageWidget = (props) => {
                 if (rowdata != undefined && earningList != undefined) {
                   for (var i = 0; i < (earningList||[]).length; i++)
                   {
-                    if (rowdata.symbol === earningList[i]){
+                    if (rowdata.symbolname === earningList[i].symbolname){
                       return ({backgroundColor: "#ffcdd2"});
                     }
                   }  
@@ -479,7 +505,7 @@ const UserPageWidget = (props) => {
             { title: 'Reward\nInR', field: 'rewardprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['rewardinR']},
             { title: 'Initial\nPrice', field: 'addedprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedprice']},
             { title: 'Added\nChange', field: 'addedpricechange', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedpricechange']},
-            { title: 'Date Added', field: 'dateadded', type: 'date',  editable: 'never', searchable:false ,hidden:!columndata['dateadded']},
+            { title: 'Date Added', field: 'dateadded', type: 'date',  editable: 'never', searchable:false ,hidden:!columndata['dateadded'], defaultSort:'desc'},
             { title: 'Comment', field: 'comment', type:'string', hidden:!columndata['comment'],
               editComponent: props => (
                 <TextField
@@ -511,23 +537,29 @@ const UserPageWidget = (props) => {
           "username": userName,
           "useremail" : userEmail,
         }
+        let token = jwt.encode(payload, secret);
+        console.log("token", token);
+        payload = {"token": token};
         getwatchlisttemplate(payload).then(ret=>{
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
           if (ret['data'].result === 'ok')
           {
             setColumnData(ret['data']['data']);
               getWatchlist(payload).then( ret=>{
+                ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                 console.log('getwachlist return', ret);
                 setState((ret?.data?.data || []).map(item=>{
                   if (item.earningdate != ""){
                     item.earningdate = new Date(item.earningdate);
                     if (item.earningflag === true)
                     {
-                      alertList.push(item.symbol);
+                      console.log("earningreportdatapush")
+                      alertList.push({"symbol":item.symbol,"symbolname":item.symbolname});
                     }
                   }
                   if (parseFloat(item['exitprice']) > 0){
                     console.log("aavv");
-                    exitList.push(item['symbol']);
+                    exitList.push({"symbol":item.symbol,"symbolname":item.symbolname});
                   }
                   if (item['viewstatus'] === "True"){
                     setPublicIcon(true);
@@ -542,7 +574,7 @@ const UserPageWidget = (props) => {
                   setSymbol(()=>{
                     const symboldata = [...symbol];
                     (ret?.data?.data || []).map(item=>{
-                      symboldata.push(item.symbol);
+                      symboldata.push({"symbol":item.symbol,"symbolname":item.symbolname});
                     });
 
                     console.log('symbol data changed', symboldata);
@@ -583,13 +615,14 @@ const UserPageWidget = (props) => {
               padding:densestring,
               doubleHorizontalScroll:true,
               paging:true,
+              pageSize: (localStorage.getItem("TableSize") || 5),
               emptyRowsWhenPaging:false,
               paginationType:'stepped',
               addRowPosition:'first',
               rowStyle: (data, index) =>{
                 let bufIndex = [];
                 (exitList || []).map(item=>{
-                  if (item === data.symbol)
+                  if (item.symbolname === data.symbolname)
                   {
                     bufIndex.push(index);
                   }
@@ -604,6 +637,11 @@ const UserPageWidget = (props) => {
                 return { padding:'1px', fontSize:"14px", fontFamily:"'Open Sans', sans-serif", paddingTop:"0px", paddingBottom:"0px" }
               }
 
+            }}
+            onChangeRowsPerPage={pageSize=>{
+              console.log("rowperpage", pageSize);
+              localStorage.setItem("TableSize", pageSize);
+              setTableSize(pageSize);
             }}
             onColumnDragged={(sourceIndex, destinationIndex)=>{
               console.log("source", sourceIndex);
@@ -670,6 +708,8 @@ const UserPageWidget = (props) => {
                     onRowAdd: (newData) =>
                     new Promise((resolve) => {
                       var bufsymbol;
+                      var jwt = require('jwt-simple');
+                      let secret = "Hero-Hazan-Trading-Watchlist";  
                         resolve();
                         setFirst(false);
                         setState((prevState) => {
@@ -717,7 +757,7 @@ const UserPageWidget = (props) => {
                               newData['alertpricechange'] = 5.0;
                             }
                             if (newData['exitprice'] != 0){
-                              exitList.push(newData['symbol']);
+                              exitList.push({"symbol":newData['symbol'],"symbolname":newData['symbolname']});
                             }
                             let today = new Date();
                             let dd = String(today.getDate()).padStart(2, '0');
@@ -749,7 +789,10 @@ const UserPageWidget = (props) => {
                                 "useremail": userEmail,
                                 "userrole": userRole,
                               }
+                              let token2 = jwt.encode(payload2, secret);
+                              payload2 = {"token": token2};      
                               validwatchlist(payload2).then(ret=>{
+                                ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                                 if(ret['data'].result === 'ok'){
                                   datas.push(newData);
 
@@ -757,6 +800,7 @@ const UserPageWidget = (props) => {
                                     "username": userName,
                                     "useremail": userEmail,
                                     "symbol": newData['symbol'],
+                                    "symbolname": new Date().getTime().toString(),
                                     "sector": newData['sector'],
                                     "tradetiming": newData['tradetiming'],
                                     "shortorlong": newData['shortorlong'],
@@ -772,8 +816,10 @@ const UserPageWidget = (props) => {
                                     "viewstatus" : "True",
                                     "tradescore" : newData['tradescore'],
                                   }
-                              
+                                  let token = jwt.encode(payload, secret);
+                                  payload = {"token": token};      
                                   saveWatchlist(payload).then( ret=>{
+                                    ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                                     if (ret['data'].result === 'ok'){
                                       bufsymbol = newData['symbol'];
                                       setStatus(()=>{
@@ -781,7 +827,7 @@ const UserPageWidget = (props) => {
                                       });
                                       setSymbol((prevSymbol)=>{
                                         const symboldata = [...prevSymbol];
-                                        symboldata.push(bufsymbol);
+                                        symboldata.push({"symbol":bufsymbol, "symbolname":newData['symbolname']});
                                         return symboldata;
                                       });                        
                                       setLoading(false);
@@ -815,6 +861,8 @@ const UserPageWidget = (props) => {
                     onRowUpdate: (newData, oldData) =>
                     new Promise((resolve) => {
                         resolve();
+                        var jwt = require('jwt-simple');
+                        let secret = "Hero-Hazan-Trading-Watchlist";  
                         if (oldData) {
                             setState((prevState) => {
                             const data = [...prevState];
@@ -822,7 +870,7 @@ const UserPageWidget = (props) => {
                             console.log("oldData", oldData);
                             console.log("newData",newData);
                             if (newData['exitprice'] != 0){
-                              exitList.push(newData['symbol']);
+                              exitList.push({"symbol":newData['symbol'],"symbolname":newData['symbolname']});
                             }
                             if (newData['exitprice'] != 0 && newData['stoploss'] !=0 && newData['entryprice']!=0){
                               newData['rewardprice'] =(parseFloat(newData['exitprice']) - parseFloat(newData['entryprice'])) / (parseFloat(newData['entryprice']) - parseFloat(newData['stoploss'])) ;
@@ -840,6 +888,7 @@ const UserPageWidget = (props) => {
                               "username": userName,
                               "useremail": userEmail,
                               "symbol": newData['symbol'],
+                              "symbolname": newData['symbolname'],
                               "sector": newData['sector'],
                               "tradetiming": newData['tradetiming'],
                               "shortorlong": newData['shortorlong'],
@@ -854,8 +903,10 @@ const UserPageWidget = (props) => {
                               "earningdate" : newData['earningdate'],
                               "tradescore" : newData['tradescore'],
                             }
-                        
+                            let token = jwt.encode(payload, secret);
+                            payload = {"token": token};      
                             updateWatchlist(payload).then( ret=>{
+                              ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                               if (ret['data'].result === 'ok'){
                                 console.log(ret['data']);
                                 setAlert("none", newData['symbol']);
@@ -882,6 +933,8 @@ const UserPageWidget = (props) => {
                     onRowDelete: (oldData) =>
                     new Promise((resolve) => {
                         resolve();
+                        var jwt = require('jwt-simple');
+                        let secret = "Hero-Hazan-Trading-Watchlist";  
                         setFirst(false);
                         setState((prevState) => {
                             const datas = [...prevState];                            
@@ -890,12 +943,15 @@ const UserPageWidget = (props) => {
                               "username": userName,
                               "useremail": userEmail,
                               "symbol": oldData['symbol'],
+                              "symbolname" : oldData['symbolname'],
                               "tradetiming" : oldData['tradetiming'],
                               "shortorlong" : oldData['shortorlong'],
                               "tradetimeframe" : oldData['tradetimeframe']
                             }
-                        
+                            let token = jwt.encode(payload, secret);
+                            payload = {"token": token};      
                             deleteWatchlist(payload).then( ret=>{
+                              ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                               if (ret['data'].result === 'ok'){
                                 console.log("deletewatchlist");
                                 setStatus(()=>{
@@ -903,7 +959,7 @@ const UserPageWidget = (props) => {
                                 });
                                 setSymbol(()=>{
                                   let symboldata = [...symbol]
-                                  symboldata.pop(oldData['symbol']);
+                                  symboldata.pop({"symbolname":oldData['symbolname']});
                                   return symboldata;
                                 });
                                 refreshPage();

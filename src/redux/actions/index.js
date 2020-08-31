@@ -1,4 +1,4 @@
-import { SIDEMENU_RIGHT_OPEN, SIDEMENU_LEFT_OPEN, DASHBOARD_TYPE,SET_NOTIFICATIONRR, SET_NOTIFICATION, SET_VTOKENF, CURRENT_PAGE_TYPE, USER_NAME, SET_SYMBOL, SET_ALERT,SET_TOKEN, SET_VTOKEN, SET_INTERVAL, SET_WATCH_USER_INFO } from "../constants/action-types";
+import { SIDEMENU_RIGHT_OPEN, SIDEMENU_LEFT_OPEN, DASHBOARD_TYPE,SET_TABLE_SIZE,SET_NOTIFICATIONRR, SET_NOTIFICATION, SET_VTOKENF, CURRENT_PAGE_TYPE, USER_NAME, SET_SYMBOL, SET_ALERT,SET_TOKEN, SET_VTOKEN, SET_INTERVAL, SET_WATCH_USER_INFO } from "../constants/action-types";
 
 export function openRightSideMenu(payload){    
     return { type: SIDEMENU_RIGHT_OPEN, payload }
@@ -73,6 +73,11 @@ export const setNotification = (fromname, fromimage, lastchattime, content) =>({
 
 export const setIntervaltime = payload =>({
     type: SET_INTERVAL,
+    payload
+})
+
+export const setTableSize = payload =>({
+    type: SET_TABLE_SIZE,
     payload
 })
 

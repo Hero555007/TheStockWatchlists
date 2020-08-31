@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles } from '@material-ui/styles';
-import {savesharewatchlisttemplate, getsharewatchlisttemplate, updatesharewatchlisttemplate} from '../../../../services/api/httpclient';
+import {savesharewatchlisttemplate, getsharewatchlisttemplate, updatesharewatchlisttemplate, getstockpriceintervaltime} from '../../../../services/api/httpclient';
 import { connect } from "react-redux";
 import {
   Card,
@@ -42,6 +42,7 @@ const ShareWatchlistTemplate = props => {
   const [userName, setUserName] = React.useState("");
   const [userEmail, setEmail] = React.useState("");
   const [initialflag, setInitialFlag] = React.useState(false);
+  const [interval, setInterval] = React.useState('5');
 
   const [data, setData] = React.useState([
     {id : 1, name:"symbol", label:"Symbol", flag:true, checked:true},
@@ -65,7 +66,25 @@ const ShareWatchlistTemplate = props => {
     {id : 19, name:"dateadded", label:"Date Added", flag:false, checked:false},
     {id : 20, name:"comment", label:"Comment", flag:false, checked:false}
   ]);
-  
+  React.useEffect(()=>{
+    getstockpriceintervaltime().then(ret=>{
+      if (ret['data']['result'] == 'ok')
+      {
+        store.addNotification({
+          title: 'Info',
+          message: 'Stock price refresh every ' + ret['data']['data'] + ' minutes',
+          type: 'success',                         // 'default', 'success', 'info', 'warning'
+          container: 'top-right',                // where to position the notifications
+          animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+          animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+          dismiss: {
+            duration: 3000
+          }
+        })    
+      }
+    })
+  },[])
+
   React.useEffect(()=>{
     if (username === "")
     {
@@ -89,11 +108,18 @@ const ShareWatchlistTemplate = props => {
     {
         return;
     }
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payloadforget={
         "username" : userName,
         "useremail" : userEmail,
     }
+    let token = jwt.encode(payloadforget, secret);
+    payloadforget = {"token": token};    
     getsharewatchlisttemplate(payloadforget).then(ret=>{
+      console.log("sharetemresult", ret['data']);
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+      console.log("sharetemresult", ret['data']);
         if(ret.data.result === 'ok')
         {
             setInitialFlag(false);
@@ -172,6 +198,8 @@ const ShareWatchlistTemplate = props => {
     });
   },[userName, userEmail]);
   const onOK=() => {
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if(initialflag === true)
     {
         let payload ={
@@ -188,8 +216,11 @@ const ShareWatchlistTemplate = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
+        let token = jwt.encode(payload, secret);
+        payload = {"token": token};    
         savesharewatchlisttemplate(payload).then( ret=>{
-            if (ret['data'].result === 'ok'){
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+          if (ret['data'].result === 'ok'){
                 // changeDashboardType({dashboard_type:0});
                 store.addNotification({
                   title: 'Success',
@@ -237,7 +268,10 @@ const ShareWatchlistTemplate = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
+        let token = jwt.encode(payload, secret);
+        payload = {"token": token};      
         updatesharewatchlisttemplate(payload).then( ret=>{
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
             if (ret['data'].result === 'ok'){
               store.addNotification({
                 title: 'Success',
@@ -329,7 +363,7 @@ const ShareWatchlistTemplate = props => {
                             checked={item.checked}
                             onChange={handleChange}
                             name={item.name}
-                            color="primary"
+                            style={{color:"#00a64c"}}
                         />
                         }
                         label={item.label}
@@ -359,7 +393,7 @@ const ShareWatchlistTemplate = props => {
                               checked={item.checked}
                               onChange={handleChange}
                               name={item.name}
-                              color="primary"
+                              style={{color:"#00a64c"}}
                           />
                           }
                           label={item.label}
@@ -374,7 +408,7 @@ const ShareWatchlistTemplate = props => {
         <Divider />
         <CardActions>
             <Button
-              color="primary"
+              style={{color:"#00a64c"}}
               variant="outlined"
               onClick={onOK}
             >

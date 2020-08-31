@@ -7,6 +7,7 @@ import {getfollowedlist} from '../../services/api/httpclient';
 import { connect } from "react-redux";
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Backdrop from '@material-ui/core/Backdrop';
+import { useHistory } from 'react-router-dom';
 
 const mapStateToProps = state => {
   return { username:state.user.username, useremail:state.user.useremail};
@@ -35,6 +36,13 @@ const UserListF = (props) => {
   const [userName, setUserName] = React.useState("");
   const [userEmail, setEmail] = React.useState("");
   const [open, setOpen] = React.useState(true);
+  const history = useHistory();
+  useEffect(()=>{
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
+
 
   React.useEffect(()=>{
     if (username == "")
@@ -56,12 +64,18 @@ const UserListF = (props) => {
 //  const [users] = useState(mockData);
   const [users, setUsers] = React.useState([]);
   useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if (userName != "" && userEmail != ""){
       let payload={
         'useremail' : userEmail
       }
+      let token = jwt.encode(payload, secret);
+      console.log("userfollowerstoken", token);
+      payload = {"token": token};      
       console.log("userfollowers", payload);
       getfollowedlist(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] == 'ok'){
           console.log("userfollowers",ret['data']['data']);
           setUsers(ret['data']['data']);

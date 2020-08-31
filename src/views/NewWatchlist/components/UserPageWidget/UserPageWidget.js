@@ -10,11 +10,15 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList } from 'react-window';
 import { Typography } from '@material-ui/core';
-import {getWatchlist,getsector, getcurrentstockprice, getsharewatchlisttemplate, getuserdata, getfollowers} from '../../../../services/api/httpclient';
+import {getstockpriceintervaltime,getWatchlist,getsector, getcurrentstockprice, getsharewatchlisttemplate, getuserdata, getfollowers} from '../../../../services/api/httpclient';
 import { connect } from "react-redux";
 import { setSymbolName } from '../../../../redux/actions';
-import { setAlert } from '../../../../redux/actions';
+import { setAlert,setNotification } from '../../../../redux/actions';
 import { Link as RouterLink } from 'react-router-dom';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+
 
 
 const mapStateToProps = state => {
@@ -165,7 +169,7 @@ const UserPageWidget = (props) => {
   
     const initialList = [];
     const data = [];
-    const time = 1000 * 60 * 5;
+    const [time, setTimeInterval] = React.useState(1000 * 60 * 5); 
     const [value, setValue] = React.useState("");
     const [sectorvalue, setSectorValue] = React.useState("");
     const [symbol, setSymbol] = React.useState(initialList);
@@ -179,12 +183,31 @@ const UserPageWidget = (props) => {
     const [first, setFirst] = React.useState(true);
     const [publicIcon, setPublicIcon] = React.useState(false);
     const [timerId, setTimerId] = React.useState(null);
+    const [size, setSize] = React.useState(5);
     
-
+    React.useEffect(()=>{
+      console.log("localsotrageSize");
+      if (localStorage.key("TableSizeU") != null)
+      {
+        console.log("localsotrageSize", localStorage.getItem("TableSizeU"));
+        setSize(localStorage.getItem("TableSizeU"));
+      }
+      else{
+        setSize(5);
+      }
+    },[])
+    React.useEffect(()=>{
+      getstockpriceintervaltime().then(ret=>{
+        if (ret['data']['result'] == 'ok'){
+          setTimeInterval(parseInt(ret['data']['data']) * 1000 * 60);
+        }
+      })
+    },[])
     React.useEffect(()=>{
       symbol.map(item =>{
         let payload = {
-          "symbol": item,
+          "symbol": item.symbol,
+          "symbolname" : item.symbolname
         }
         
         console.log('payload1', payload);
@@ -197,7 +220,7 @@ const UserPageWidget = (props) => {
           setState(prevState => prevState.map(item_ => {
             console.log("item_",item_);
             const item = {...item_}
-            if (item.symbol == ret.data.symbol) {
+            if (item.symbolname == ret.data.symbolname) {
               if (item.currentstockprice == 0){
                 item.currentchange = 0;                
               }
@@ -208,9 +231,40 @@ const UserPageWidget = (props) => {
               item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
               if (item.alertprice != null && item.alertprice != "0")
               {
-                if ((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice) > 2.0){
-                  setAlert("block", item.symbol);
-                  earningList.push(item.symbol);
+                console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
+                if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                  console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
+                  setAlert("block", item.symbolname);
+                  console.log("setnotification",userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol)
+                  setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                    console.log("setearninglist")
+                    setEarningList(()=>{
+                      const _earninglist = earningList || [];
+                      let flag = false;
+                      (earningList||[]).map(items=>{
+                        if (items.symbolname == item.symbolname)
+                        {
+                          flag = true;
+                        }
+                      })
+                      if (flag == false){
+                        _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
+                      }
+                      return _earninglist;
+                    })
+                    // (earningList||[]).push(item.symbol);
+                    // console.log("earningList",earningList);  
+                }
+                else{
+                  setEarningList(()=>{
+                    const _earninglist = [];
+                    (earningList||[]).map(items=>{
+                      if (items.symbolname != item.symbolname){
+                        _earninglist.push({"symbol":items.symbol,"symbolname":items.symbolname});
+                      }
+                    })
+                    return _earninglist;
+                  })
                 }
               }
               return item;
@@ -245,9 +299,40 @@ const UserPageWidget = (props) => {
                   item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
                   if (item.alertprice != null && item.alertprice != "0")
                   {
-                    if (parseFloat(item.currentstockprice) >= parseFloat(item.alertprice)){
+                    console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
+                    if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                      console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
                       setAlert("block", item.symbol);
+                      setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                      console.log("setearninglist")
+                      setEarningList(()=>{
+                        const _earninglist = earningList || [];
+                        let flag = false;
+                        (earningList||[]).map(items=>{
+                          if (items.symbolname == item.symbolname)
+                          {
+                            flag = true;
+                          }
+                        })
+                        if (flag == false){
+                          _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
+                        }
+                        return _earninglist;
+                      })
+                        // (earningList||[]).push(item.symbol);
+                      // console.log("earningList",earningList);  
                     }
+                    else{
+                      setEarningList(()=>{
+                        const _earninglist = [];
+                        (earningList|| []).map(items=>{
+                          if (items.symbolname != item.symbolname){
+                            _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
+                          }
+                        })
+                        return _earninglist;
+                      })
+                    }    
                   }
                   return item;
                 } else {
@@ -269,6 +354,8 @@ const UserPageWidget = (props) => {
     },[symbol])  
     React.useEffect(() => {
       if (!userName.length || !userEmail.length) return;
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";  
       console.log("newwatchlist username useremail", userName, userEmail)
       let payload = {
         "username": userName,
@@ -278,7 +365,10 @@ const UserPageWidget = (props) => {
       let payload1 = {
         'useremail' : userEmail
       }
+      let token = jwt.encode(payload1, secret);
+      payload1 = {"token": token};      
       getuserdata(payload1).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         console.log("sharemethod",ret['data']['data']['sharemethod']);
         if(ret['data']['result'] == 'ok'){
           if (ret['data']['data']['sharemethod'] == '2'){
@@ -289,7 +379,10 @@ const UserPageWidget = (props) => {
               'Suseremail' : myEmail,
               'Duseremail' : userEmail
             }
+            let token2 = jwt.encode(payload2, secret);
+            payload2 = {"token": token2};      
             getfollowers(payload2).then(ret=>{
+              ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
               console.log("sharemethod1", ret['data']);
               if(ret['data']['result'] == 'failed'){
                 return;
@@ -309,14 +402,37 @@ const UserPageWidget = (props) => {
  
     }, [userName, userEmail, status, myEmail])
     const displaywatchlist = (payload)=>{
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";  
+      let token = jwt.encode(payload, secret);
+      console.log("sharedatapayload", payload)
+      payload = {"token": token};   
+      console.log("sharedatapayload", payload)
       getsharewatchlisttemplate(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         console.log("sharedata", ret['data']);
-        if (ret['data'].result == 'ok')
+        if (ret['data'].result == 'failed db')
+        {
+          store.addNotification({
+            title: 'Info',
+            message: "don't set watchlist to share",
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })    
+  
+        }
+        else if (ret['data'].result == 'ok')
         {
           setColumnData(ret['data']['data']);
-            getWatchlist(payload).then( ret=>{
-              console.log('getwachlist return', ret);
-              setState(ret.data.data.map(item=>{
+            getWatchlist(payload).then( ret1=>{
+              ret1['data'] = jwt.decode(ret1['data']['result'].substring(2,ret1['data']['result'].length - 2), secret, true);  
+              console.log('getwachlist return', ret1['data']);
+              setState(ret1['data']['data'].map(item=>{
                 if (item.earningdate != ""){
                   item.earningdate = new Date(item.earningdate);
                   if (item.earningflag == true)
@@ -326,7 +442,7 @@ const UserPageWidget = (props) => {
                 }
                 if (parseFloat(item['exitprice']) > 0){
                   console.log("aavv");
-                  exitList.push(item['symbol']);
+                  // exitList.push(item['symbol']);
                 }
                 if (item['viewstatus'] == "True"){
                   setPublicIcon(true);
@@ -340,7 +456,7 @@ const UserPageWidget = (props) => {
               {
                 setSymbol(()=>{
                   const symboldata = [...symbol];
-                  ret.data.data.map(item=>{
+                  ret1.data.data.map(item=>{
                     symboldata.push(item.symbol);
                   });
 
@@ -466,8 +582,16 @@ const UserPageWidget = (props) => {
             if (rowdata != undefined){
               for (var i = 0; i < alertList.length; i++)
               {
-                if (rowdata.symbol == alertList[i]){
-                  return ({backgroundColor: "#ffcdd2"});
+                if (rowdata != undefined && alertList.length == 0){
+                  for (var i = 0; i < alertList.length; i++)
+                  {
+                    if (rowdata.symbolname === alertList[i].symbolname){
+                      return ({backgroundColor: "#ffcdd2"});
+                    }
+                  }  
+                }
+                else{
+                  return ({backgroundColor: "#ffffff"});
                 }
               }  
             }
@@ -479,13 +603,16 @@ const UserPageWidget = (props) => {
         { title: 'Alert\nPrice', field: 'alertprice', type: 'numeric' , searchable:false,hidden:!columndata['alertprice'],
           cellStyle: (index, rowdata) =>{
             let bufIndex = [];
-            if (rowdata != undefined) {
-              for (var i = 0; i < earningList.length; i++)
+            if (rowdata != undefined && earningList != undefined) {
+              for (var i = 0; i < (earningList||[]).length; i++)
               {
-                if (rowdata.symbol == earningList[i]){
+                if (rowdata.symbolname === earningList[i].symbolname){
                   return ({backgroundColor: "#ffcdd2"});
                 }
               }  
+            }
+            else{
+              return ({backgroundColor: "#ffffff"});
             }
           }          
         },
@@ -523,12 +650,18 @@ const UserPageWidget = (props) => {
             columns={getColumns()}
             data={state}
             isLoading={loading}
+            onChangeRowsPerPage={pageSize=>{
+              console.log("rowperpage", pageSize);
+              localStorage.setItem("TableSize", pageSize);
+            }}
             options={{
               rowStyle:{
                 padding:'1px'
               },
               doubleHorizontalScroll:true,
               paging:true,
+              emptyRowsWhenPaging:false,
+              pageSize: (localStorage.getItem("TableSize") || 5),
               addRowPosition:'first',
               rowStyle: (data, index) =>{
                 let bufIndex = [];

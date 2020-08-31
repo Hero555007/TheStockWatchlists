@@ -59,10 +59,16 @@ const Profile = props => {
     if (userEmail === ""){
       return;
     }
-    const payload1 = {
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
+    let payload1 = {
       "useremail" : userEmail,
     }
+    let token = jwt.encode(payload1, secret);
+    console.log("profiletoken", token);
+    payload1 = {"token": token};
     getuserdata(payload1).then((ret)=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         console.log("profileuserdata", ret['data']['data']);
         setUser(ret['data']['data']);

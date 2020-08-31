@@ -8,20 +8,20 @@ import { makeStyles } from '@material-ui/styles';
 import { List, ListItem, Button, colors } from '@material-ui/core';
 
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+  },
   item: {
     display: 'flex',
     paddingTop: 0,
     paddingBottom: 0
   },
   button: {
-    color: colors.blueGrey[800],
     padding: '10px 8px',
     justifyContent: 'flex-start',
     textTransform: 'none',
     letterSpacing: 0,
     width: '100%',
-    fontWeight: theme.typography.fontWeightMedium
+    fontWeight: theme.typography.fontWeightMedium,
   },
   icon: {
     color: theme.palette.icon,
@@ -29,13 +29,13 @@ const useStyles = makeStyles(theme => ({
     height: 24,
     display: 'flex',
     alignItems: 'center',
-    marginRight: theme.spacing(1)
+    marginRight: theme.spacing(1),
   },
   active: {
-    color: theme.palette.primary.main,
+    color: "#00a64c",
     fontWeight: theme.typography.fontWeightMedium,
     '& $icon': {
-      color: theme.palette.primary.main
+      color: "#00a64c",
     }
   }
 }));
@@ -50,10 +50,12 @@ const CustomRouterLink = forwardRef((props, ref) => (
 ));
 
 const SidebarNav = props => {
-  const { pages, className, ...rest } = props;
+  const { pages, className,cclosehandle, ...rest } = props;
 
   const classes = useStyles();
-
+  const handleClick=()=>{
+    cclosehandle(false);
+  }
   return (
     <List
       {...rest}
@@ -70,6 +72,7 @@ const SidebarNav = props => {
             className={classes.button}
             component={CustomRouterLink}
             to={page.href}
+            onClick={handleClick}
           >
             <div className={classes.icon}>{page.icon}</div>
             {page.title}

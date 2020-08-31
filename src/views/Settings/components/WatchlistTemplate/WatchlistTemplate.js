@@ -93,11 +93,16 @@ const Notifications = props => {
     {
         return;
     }
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payloadforget={
         "username" : userName,
         "useremail" : userEmail,
     }
+    let token = jwt.encode(payloadforget, secret);
+    payloadforget = {"token": token};      
     getwatchlisttemplate(payloadforget).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if(ret.data.result == 'ok')
         {
             setInitialFlag(false);
@@ -177,6 +182,8 @@ const Notifications = props => {
   },[userName, userEmail]);
 
   const onOK=() => {
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payloadforget={
         "username" : userName,
         "useremail" : userEmail,
@@ -197,8 +204,12 @@ const Notifications = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
-
-      savewatchlisttemplate(payload).then( ret=>{
+        console.log("savewatchlisttemplatepayload",payload)
+        let token = jwt.encode(payload, secret);
+        payload = {"token": token};    
+        savewatchlisttemplate(payload).then( ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+        console.log("savewatchlisttemplateresult",ret['data'].result);
           if (ret['data'].result === 'ok'){
             console.log("savewatchlisttemp");
             setActive(true);
@@ -228,8 +239,13 @@ const Notifications = props => {
             bufdata.checked = item.checked;
             payload.data.push(bufdata);
         })
+        console.log("updatewatchlisttemplatepayload",payload)
+        let token = jwt.encode(payload, secret);
+        payload = {"token": token};      
         updatewatchlisttemplate(payload).then( ret=>{
-            if (ret['data'].result === 'ok'){
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+          console.log("savewatchlisttempresult", ret['data'].result);
+          if (ret['data'].result === 'ok'){
               console.log("savewatchlisttemp");
               setActive(true);
               history.push('/dashboard');
@@ -300,7 +316,7 @@ const Notifications = props => {
                             checked={item.checked}
                             onChange={handleChange}
                             name={item.name}
-                            color="primary"
+                            style={{color:"#00a64c"}}
                         />
                         }
                         label={item.label}
@@ -330,7 +346,7 @@ const Notifications = props => {
                               checked={item.checked}
                               onChange={handleChange}
                               name={item.name}
-                              color="primary"
+                              style={{color:"#00a64c"}}
                           />
                           }
                           label={item.label}
@@ -345,7 +361,7 @@ const Notifications = props => {
         <Divider />
         <CardActions>
         <Button
-          color="primary"
+          style={{color:"#00a64c"}}
           variant="outlined"
           onClick={()=>onOK()}
         >

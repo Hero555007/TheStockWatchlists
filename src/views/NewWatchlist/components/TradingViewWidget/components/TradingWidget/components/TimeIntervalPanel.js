@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import clsx from 'clsx';
 import { makeStyles, withStyles } from '@material-ui/styles';
-import {  Hidden, useMediaQuery } from '@material-ui/core';
+import { Hidden, useMediaQuery } from '@material-ui/core';
 import Icon from '@material-ui/core/Icon';
 import ToggleButton from '@material-ui/lab/ToggleButton';
 import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
@@ -20,6 +20,7 @@ function mapDispatchToProps(dispatch) {
 const useStyles = makeStyles(theme => ({
   root: {
     padding: theme.spacing(4),
+    paddingTop: '5px',
     backgroundColor: '#1b2d5e',
     height : '100%',
     width: '100%',
@@ -33,12 +34,10 @@ const useStyles = makeStyles(theme => ({
   },
   searchClass:
   {
-
     marginLeft: '5px',
     border: '0px solid',
     width: '63px',
     height: '20px',
-    
   },
   selectClass:
   {
@@ -51,6 +50,7 @@ const useStyles = makeStyles(theme => ({
     
   },
 }));
+
 
 
 const MyToggleButton = withStyles(theme => ({
@@ -116,9 +116,9 @@ const TimeIntervalPanel = props => {
       {...rest}
       className={clsx(classes.root, className)}
     >
-      <Hidden xsDown smDown mdDown >
+      {/* <Hidden xsDown smDown mdDown > */}
      
-      {openSidebar !== true && matches ? '' : <div style={{flex: 409, margin: '0px', padding: '0px'}}>
+      {/* {openSidebar != true && matches ? '' : <div style={{flex: 409, margin: '0px', padding: '0px'}}> */}
         <ToggleButtonGroup
           value={timevalue}
           exclusive
@@ -131,10 +131,11 @@ const TimeIntervalPanel = props => {
             </MyToggleButton>
           ))}
         </ToggleButtonGroup>
-     </div> }
+     </div> 
+    //  }
      
-      </Hidden>
-    </div>
+      // {/* </Hidden> */}
+    // </div>
   );
 };
 

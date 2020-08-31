@@ -16,6 +16,13 @@ import {
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ReCAPTCHA from 'react-google-recaptcha'
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
+
 
 const schema = {
   email: {
@@ -29,8 +36,11 @@ const schema = {
 
 const useStyles = makeStyles(theme => ({
   root: {
-    backgroundColor: theme.palette.background.default,
-    height: '100%'
+    backgroundColor: "#e4ebfe",
+    backgroundSize:'cover',
+    backgroundPosition:"top center",
+    backgroundImage:'url(/images/background.jpg)',
+    height:'100%'
   },
   grid: {
     height: '100%'
@@ -92,9 +102,9 @@ const useStyles = makeStyles(theme => ({
     }
   },
   form: {
-    paddingLeft: 100,
-    paddingRight: 100,
-    paddingBottom: 125,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 25,
     flexBasis: 700,
     [theme.breakpoints.down('sm')]: {
       paddingLeft: theme.spacing(2),
@@ -118,7 +128,24 @@ const useStyles = makeStyles(theme => ({
   },
   signInButton: {
     margin: theme.spacing(2, 0)
-  }
+  },
+  CardC : {
+    marginTop:"15%",
+    backgroundColor:"#ffffff",
+    marginBottom:"30px"
+  },
+  CardH : {
+    margin:"0",
+    backgroundColor: "#e4ebfe",
+  },
+  avatar: {
+    height:"50px",
+    display:"block",
+    marginLeft:'auto',
+    marginRight:'auto',
+    width:"150px"
+  },
+
 }));
 
 const ForgetPassword = props => {
@@ -207,6 +234,8 @@ const ForgetPassword = props => {
   } 
   const handleSignIn = event => {
     event.preventDefault();
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if (isverified)
     {
       let payload = {
@@ -214,23 +243,55 @@ const ForgetPassword = props => {
       }
       console.log("validationforget", formState.values.email);
 //      setUrl("/validation-forget?email=" + formState.values.email);
-
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};
       gettoken(payload).then( ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data'].result === 'ok'){
-            console.log("forgettoken", ret['data']['token']);
+          console.log("forgettoken", ret['data']['token']);
            dispatch(setValidationTokenF(ret['data']['token'], formState.values.email));
            history.push('/validation-forget');
         }
         else if(ret['data'].result === 'fail'){
-          alert(ret['data'].message);
+          store.addNotification({
+            title: 'Error',
+            message: ret['data'].message,
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
           history.push('/sign-up');
         }
         else {
-          alert(ret['data'].error);
+          store.addNotification({
+            title: 'Error',
+            message: ret['data'].error,
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
           history.push('/sign-up');
         }
       }, err => {
-        alert(err.error);
+        store.addNotification({
+          title: 'Error',
+          message: err.error,
+          type: 'success',                         // 'default', 'success', 'info', 'warning'
+          container: 'top-right',                // where to position the notifications
+          animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+          animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+          dismiss: {
+            duration: 3000
+          }
+        })
         history.push('/sign-up');
       });
     }
@@ -254,40 +315,49 @@ const ForgetPassword = props => {
         className={classes.grid}
         container
       >
-        <Grid
-          className={classes.quoteContainer}
+          <Grid
           item
-          lg={5}
+          lg={4}
+          xs={1}
         >
-          <div className={classes.quote}>
-            <div className={classes.quoteInner}>
-              <div className={classes.person}>
-              </div>
-            </div>
-          </div>
-        </Grid>
+          </Grid>
         <Grid
           className={classes.content}
           item
-          lg={7}
-          xs={12}
+          lg={4}
+          xs={10}
         >
-          <div className={classes.content}>
-            <div className={classes.contentHeader}>
-              <IconButton onClick={handleBack}>
-                <ArrowBackIcon />
-              </IconButton>
-            </div>
-            <div className={classes.contentBody}>
+
+          <div>
+          <Card className={classes.CardC}>
+          <CardHeader className={classes.CardH}
+            avatar={
+              <a
+                href="https://thestockwatchlist.com"
+              >
+                <img aria-label="recipe" className={classes.avatar} src="/images/logos/logo.png" />
+              </a>
+            }
+         />
+          <CardContent>
               <form
                 className={classes.form}
                 onSubmit={handleSignIn}
               >
                 <Typography
                   className={classes.title}
-                  variant="h2"
+                  variant="h3"
+                  style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
                 >
-                  Forget Password
+                  Reset Password
+                </Typography>
+                <Typography
+                  color="textSecondary"
+                  gutterBottom
+                  variant="h5"
+                  style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
+                >
+                  You will receive the OTP code in your email.
                 </Typography>
                 <TextField
                   className={classes.textField}
@@ -306,10 +376,11 @@ const ForgetPassword = props => {
                 <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
                   <ReCAPTCHA
                     ref={recaptchaRef}
-                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
-                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                    // sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
+                    sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
                     onChange={recaptchaverified}
                     onExpired={recaptchatexpired}
+                    hl="en"
                   />
                 </form>
                   <Button
@@ -324,8 +395,9 @@ const ForgetPassword = props => {
                     Send Confirmation
                   </Button>
               </form>
+              </CardContent>
+              </Card>
             </div>
-          </div>
         </Grid>
       </Grid>
     </div>

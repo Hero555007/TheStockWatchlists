@@ -49,15 +49,15 @@ const useStyles = makeStyles(theme => ({
     marginRight: theme.spacing(1)
   },
   active: {
-    color: 'white',
+    color: '#00a64c',
     fontSize: '12px',
-    //backgroundColor: '#456aac',
-    '& $button': {
-      color: 'white',
-      '& $icon': {
-        color: 'white'
-      },
-    }
+    // backgroundColor: '#456aac',
+    // '& $button': {
+    //   color: '#00a64c',
+    //   '& $icon': {
+    //     color: '#00a64c'
+    //   },
+    // }
   }
 }));
 
@@ -65,9 +65,9 @@ const StyledListItem = withStyles({
   root: {
     backgroundColor: "#ffffff",
     "&$selected": {
-      backgroundColor: "#e6e6e6",
+      color: "#00a64c",
       '&:hover': {
-        backgroundColor: '#f6f6f6'
+        color: '#00a64c'
       },
     },
     '&:hover': {
@@ -82,7 +82,7 @@ const initialState = {
   mouseY: null,
 };
 const CSidebarNav = props => {
-  const { pages, selected, onChange, className, myemail,notificationperson, ...rest } = props;
+  const { pages, selected, cclosehandle, onChange, className, myemail,notificationperson, ...rest } = props;
 
   const classes = useStyles();
   const [state, setState] = React.useState(initialState);
@@ -92,7 +92,16 @@ const CSidebarNav = props => {
   const history = useHistory();
 
   React.useEffect(()=>{
-    setUsers(pages);
+    setUsers(()=>{
+      const _pages = [];
+      pages.map(item=>{
+        if (item.email != "admin@admin.com"){
+          _pages.push(item);
+        }
+      })
+      return _pages;
+    })
+    // setUsers(pages);
   },[pages])
   const handleClick = (event) => {
     event.preventDefault();
@@ -130,13 +139,18 @@ const CSidebarNav = props => {
     console.log("deletemessage", "selecteda",selecteda);
     setState(initialState);
     if (selecteda === "") return;
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload = {
       'from' : myemail,
       'to' : selecteda
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     console.log("deletemessagepayload", payload,  selecteda);
 
     deleteuserincontact(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] == 'ok')
       {
         console.log("deleteuserflag");
@@ -159,6 +173,7 @@ const CSidebarNav = props => {
   const handleSelected = (email, name, avatar,index) => {
       // setSelectedIndex(index);
       console.log('ButtonSelected', email, name, avatar, index);
+      cclosehandle(false);
       onChange(email, name, avatar);  
   }
   return (
@@ -173,7 +188,7 @@ const CSidebarNav = props => {
           key={page.email}
         >
             {/* <div onContextMenu={handleClick} style={{whiteSpace: 'pre-line', fontSize:'18px', fontFamily:'"Roboto", "Helvetica", "Arial", sans-serif', cursor:"context-menu",width: '100%', backgroundColor: 'transparent'}} > */}
-          <Button style={{width: '100%', height: '100%', backgroundColor: 'transparent'}} onContextMenu={handleClick} onClick={() => { handleSelected(page.email, page.name, page.avatar, users.indexOf(page))}}>          
+          <Button activeClassName={classes.active} style={{width: '100%', height: '100%', backgroundColor: 'transparent'}} onContextMenu={handleClick} onClick={() => { handleSelected(page.email, page.name, page.avatar, users.indexOf(page))}}>          
           <Avatar
         alt="Person"
         className={classes.avatar}

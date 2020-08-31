@@ -14,6 +14,9 @@ import {
   Typography
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
 
 const mapStateToProps = state => {
   return { email:state.user.emailf};
@@ -178,6 +181,9 @@ const PasswordReset = props => {
   };
 
   const handleSignIn = event => {
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
+
     if (formState.values.newpassword !== formState.values.confirmpassword) return;
     event.preventDefault();
     let payload = {
@@ -185,8 +191,22 @@ const PasswordReset = props => {
       "password": formState.values.newpassword
     }
     console.log("resetpasswordpaylod", payload);
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};
     resetpassword(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if(ret['data']['result'] == 'ok'){
+        store.addNotification({
+          title: 'Success',
+          message: "the password has been reset, please try to sign in",
+          type: 'success',                         // 'default', 'success', 'info', 'warning'
+          container: 'top-right',                // where to position the notifications
+          animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+          animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+          dismiss: {
+            duration: 3000
+          }
+        })
         console.log("reset password success");
         history.push('/sign-in');
       }

@@ -118,12 +118,17 @@ const UsersTable = props => {
   };
 
   const handleRemove = (sideEmail) =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload={
       'useremail' : sideEmail,
       'sideemail' : userEmail
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     console.log("removefollowers", payload);
     deletefollower(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         console.log("userfollowers",ret['data']['data']);
         console.log("userfollowers", payload);
@@ -131,7 +136,10 @@ const UsersTable = props => {
           'useremail' : userEmail,
           'sideemail' : sideEmail
         }
+        let token1 = jwt.encode(payload1, secret);
+        payload1 = {"token": token1};      
         getfollowedlist(payload1).then(ret=>{
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
           if (ret['data']['result'] === 'ok'){
             console.log("userfollowers",ret['data']['data']);
             setUsers(ret['data']['data']);
@@ -155,7 +163,7 @@ const UsersTable = props => {
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedUsers.length === Users.length}
-                      color="primary"
+                      style={{color:"#00a64c"}}
                       indeterminate={
                         selectedUsers.length > 0 &&
                         selectedUsers.length < Users.length
@@ -182,7 +190,7 @@ const UsersTable = props => {
                       <TableCell padding="checkbox" align="center">
                         <Checkbox
                           checked={selectedUsers.indexOf(user.id) !== -1}
-                          color="primary"
+                          style={{color:"#00a64c"}}
                           onChange={event => handleSelectOne(event, user.id)}
                           value="true"
                         />
@@ -205,7 +213,7 @@ const UsersTable = props => {
                       </TableCell>
                       <TableCell>{user.phone}</TableCell> */}
                       <TableCell align="center">
-                        <Button variant="outlined" color="primary" onClick={()=>handleRemove(user.email)} >Remove</Button>
+                        <Button variant="outlined" style={{color:"#00a64c"}} onClick={()=>handleRemove(user.email)} >Remove</Button>
                       </TableCell>
                     </TableRow>
                     

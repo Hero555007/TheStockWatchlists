@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useHistory } from 'react-router-dom';
 import clsx from 'clsx';
 import PropTypes from 'prop-types';
 import { makeStyles } from '@material-ui/styles';
@@ -19,7 +19,7 @@ import ListItemAvatar from '@material-ui/core/ListItemAvatar';
 import Avatar from '@material-ui/core/Avatar';
 import Typography from '@material-ui/core/Typography';
 import { connect } from "react-redux";
-import {getchatfornotification,readchat, savecontacts} from '../../../../services/api/httpclient';
+import {getchatfornotification,readchat, savecontacts, logout} from '../../../../services/api/httpclient';
 import { setNotificationR } from '../../../../redux/actions';
 
 
@@ -34,7 +34,8 @@ function mapDispatchToProps(dispatch) {
 
 const useStyles = makeStyles(theme => ({
   root: {
-    boxShadow: 'none'
+    boxShadow: 'none',
+    backgroundColor:"white"
   },
   flexGrow: {
     flexGrow: 1
@@ -61,7 +62,7 @@ const Topbar = props => {
   const classes = useStyles();
   const [userName, setUserName] = React.useState("");
   const [userEmail, setEmail] = React.useState("");
-
+  const history = useHistory();
   const [notifications, setNotification] = useState([]);
   React.useEffect(()=>{
     if (username === "")
@@ -103,6 +104,7 @@ const Topbar = props => {
             }
           }
           else{
+            _notifications.push(alertnotification);
           }
         })
         }
@@ -111,11 +113,17 @@ const Topbar = props => {
   },[alertnotification])
   
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if ( userName === "" || userEmail === ""){return;}
     let payload= {
       'to' : userEmail
     }
+    let token = jwt.encode(payload, secret);
+    console.log("token", token);
+    payload = {"token": token};
     getchatfornotification(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if(ret['data']['result'] === 'ok'){
         console.log('notification', ret['data']['data']);
         setNotification(ret['data']['data']);
@@ -123,6 +131,19 @@ const Topbar = props => {
     })
   },[userName, userEmail])
   const onSignOut=(event)=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
+    let payload = {
+      'email' : userEmail
+    }
+    console.log("signoutpayload", payload);
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
+    logout(payload).then(ret=>{
+      if (ret['data']['result'] == 'ok'){
+
+      }
+    })
     localStorage.clear();
   }
   const [open, setOpen] = React.useState(false);
@@ -141,38 +162,61 @@ const Topbar = props => {
   };
 
   const readmessage = (param) =>{
-    setOpen(false);
-    setNotificationR(param);
-    let payload = {
-      'from' : param.fromperson,
-      'to' : param.toperson
-    }
-    readchat(payload).then(ret=>{
-      console.log("chatreadsuccessfullret", ret);
-      if(ret['data']['result'] == 'ok'){
-        console.log("chatreadsuccessfull");
-        setNotification(()=>{
-          const _notifications = [];
-          (notifications || []).map(item=>{
-            if (item !== param){
-              _notifications.push(item);
-            }
-          })
-          return _notifications;
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
+    if (param.content.includes("Alert") == true)
+    {
+      setOpen(false);
+      setNotification(()=>{
+        const _notifications = [];
+        (notifications || []).map(item=>{
+          if (item !== param){
+            _notifications.push(item);
+          }
         })
-      }
-    })
-    let payload1 = {
-      'from' : param.toperson,
-      'to' : param.fromperson,
+        return _notifications;
+      })
+      history.push("/dashboard");
     }
-    savecontacts(payload1).then(ret=>{
-      console.log("savecontactsuccessfullret", ret);
-     if (ret['data']['result'] == 'ok'){
-      console.log("savecontactsuccessfull");
-
-     } 
-    })
+    else{
+      setNotificationR(param);
+      let payload = {
+        'from' : param.fromperson,
+        'to' : param.toperson
+      }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
+      readchat(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+        console.log("chatreadsuccessfullret", ret);
+        if(ret['data']['result'] == 'ok'){
+          console.log("chatreadsuccessfull");
+          setNotification(()=>{
+            const _notifications = [];
+            (notifications || []).map(item=>{
+              if (item !== param){
+                _notifications.push(item);
+              }
+            })
+            return _notifications;
+          })
+        }
+      })
+      let payload1 = {
+        'from' : param.toperson,
+        'to' : param.fromperson,
+      }
+      let token1 = jwt.encode(payload1, secret);
+      payload1 = {"token": token1};      
+      savecontacts(payload1).then(ret=>{
+        console.log("savecontactsuccessfullret", ret);
+       if (ret['data']['result'] == 'ok'){
+        console.log("savecontactsuccessfull");
+  
+       } 
+      })
+      history.push("/chat");
+    }
   }
 
   const prevOpen = React.useRef(open);
@@ -195,7 +239,7 @@ const Topbar = props => {
             alt="Logo"
             src="/images/logos/logo.png"
             width="150"
-            height="40"
+            height="49"
           />
         </RouterLink>
         <div className={classes.flexGrow} />
@@ -204,6 +248,7 @@ const Topbar = props => {
             aria-controls={open ? 'menu-list-grow' : undefined}
             aria-haspopup="true"
             onClick={handleToggle}
+            style={{color:"#00a64c"}}
           >
             <Badge
               badgeContent={notifications.length}
@@ -224,7 +269,7 @@ const Topbar = props => {
                   {
                     (notifications || []).map(notification=>(
                       <>
-                        <RouterLink to="/chat" style={{color: 'inherit'}}>
+                        {/* <RouterLink to="/chat" style={{color: 'inherit'}}> */}
                           <ListItem alignItems="flex-start" onClick={()=>readmessage(notification)} className={classes.listitemroot}>
                           <ListItemAvatar>
                           <Badge badgeContent={notification.count} color="secondary">
@@ -249,7 +294,7 @@ const Topbar = props => {
                           />
                         </ListItem>
                       <Divider variant="inset" component="li" />
-                      </RouterLink>
+                      {/* </RouterLink> */}
                     </>
                     ))
                   }
@@ -311,20 +356,21 @@ const Topbar = props => {
             <IconButton
               className={classes.signOutButton}
               onClick={onSignOut}
-              color="inherit"
+              style={{color:"#00a64c"}}
             >
               <InputIcon />
             </IconButton>
           </RouterLink>
         <Hidden lgUp>
           <IconButton
-            color="inherit"
+            style={{color:"#00a64c"}}
             onClick={onSidebarOpen}
           >
             <MenuIcon />
           </IconButton>
         </Hidden>
       </Toolbar>
+      <Divider />
     </AppBar>
   );
 };

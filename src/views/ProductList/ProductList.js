@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 import {searchglobalfollowers, getearningstocks, gettopstocks, getshortlong, gettopstocksforshortlong, getglobalfollowerslist} from '../../services/api/httpclient';
@@ -14,7 +14,9 @@ import {
 } from './components';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import { connect } from "react-redux";
-
+import {useHistory} from 'react-router-dom';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import Backdrop from '@material-ui/core/Backdrop';
 
 const mapStateToProps = state => {
   return { useremail:state.user.useremail};
@@ -40,7 +42,7 @@ const useStyles = makeStyles(theme => ({
 const ProductList = props => {
   const classes = useStyles();
   const {  useremail } = props;
-
+  const history = useHistory();
   var count = 0;
   const [products, setProducts] = useState([]);
   const [stocks, setStocks] = useState([]);
@@ -52,6 +54,12 @@ const ProductList = props => {
   const [searchText, setSearchText] = React.useState("");
   const [progress, setProgress] = React.useState(0);
   const [userEmail, setEmail] = React.useState("");
+  const [open, setOpen] = React.useState(true);
+  useEffect(()=>{
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
 
   React.useEffect(()=>{
     if (useremail === "")
@@ -64,9 +72,15 @@ const ProductList = props => {
     },[ useremail]);
 
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     getglobalfollowerslist().then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);        
       if (ret['data']['result'] === 'ok'){
         setFollowerslist(ret['data']['data']);
+        setTimeout(()=>{
+          setOpen(false);
+        }, 1000)
         setProgress(20);
         getearningstocks().then(ret=>{
           if (ret['data']['result'] === 'ok'){
@@ -103,11 +117,18 @@ const ProductList = props => {
   },[]);
 
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     console.log("searchtextformostfollowerdusers", searchText);
     if (searchText === ""){
+      setOpen(true);
       getglobalfollowerslist().then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] === 'ok'){
           setFollowerslist(ret['data']['data']);
+          setTimeout(()=>{
+            setOpen(false);
+          }, 1000)
         }  
       })
     }
@@ -116,6 +137,7 @@ const ProductList = props => {
         'searchText' : searchText,
       }
       searchglobalfollowers(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data']['result'] === 'ok'){
           setFollowerslist(ret['data']['data']);
         }          
@@ -128,11 +150,13 @@ const ProductList = props => {
     setSearchText(text);
   }
 
+  console.log('followerslist', followerslist);
+
   return (
     <div className={classes.root}>
-    {/* <Backdrop className={classes.backdrop} open={open}> */}
+    <Backdrop className={classes.backdrop} open={open}>
     <LinearProgress style={{display:openText}} color="primary" variant="determinate" value={progress}/>
-    {/* </Backdrop> */}
+    </Backdrop>
       <UsersToolbar onChange={handlechange} />
       <div className={classes.content}>
         <Grid

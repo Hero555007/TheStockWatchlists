@@ -6,6 +6,9 @@ import { makeStyles } from '@material-ui/styles';
 import {signup} from './../../services/api/httpclient';
 import {setValidationToken, setUserName} from './../../redux/actions'
 import {connect} from 'react-redux';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
 
 import {
   Grid,
@@ -19,6 +22,9 @@ import {
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ReCAPTCHA from 'react-google-recaptcha'
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import CardContent from '@material-ui/core/CardContent';
 
 const schema = {
   nickName: {
@@ -60,8 +66,10 @@ const schema = {
 
 const useStyles = makeStyles(theme => ({
   root: {
-    backgroundColor: theme.palette.background.default,
-    height: '100%'
+    backgroundColor: "#e4ebfe",
+    backgroundSize:'cover',
+    backgroundPosition:"top center",
+    backgroundImage:'url(/images/background.jpg)',
   },
   grid: {
     height: '100%'
@@ -123,9 +131,9 @@ const useStyles = makeStyles(theme => ({
     }
   },
   form: {
-    paddingLeft: 100,
-    paddingRight: 100,
-    paddingBottom: 125,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingBottom: 25,
     flexBasis: 700,
     [theme.breakpoints.down('sm')]: {
       paddingLeft: theme.spacing(2),
@@ -148,7 +156,24 @@ const useStyles = makeStyles(theme => ({
   },
   signUpButton: {
     margin: theme.spacing(2, 0)
-  }
+  },
+  CardC : {
+    marginTop:"15%",
+    backgroundColor:"#ffffff",
+    marginBottom:"30px"
+  },
+  CardH : {
+    margin:"0",
+    backgroundColor: "#e4ebfe",
+  },
+  avatar: {
+    height:"50px",
+    display:"block",
+    marginLeft:'auto',
+    marginRight:'auto',
+    width:"150px"
+  },
+
 }));
 
 const SignUp = props => {
@@ -208,6 +233,8 @@ const SignUp = props => {
     event.preventDefault();
     if (isverified)
     {
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";
       let payload = {
         "nickName" : formState.values.nickName,
         "firstName" : formState.values.firstName,
@@ -216,24 +243,76 @@ const SignUp = props => {
         "password": formState.values.password,
         "role": "2",
       }
+      let token = jwt.encode(payload, secret);
+      console.log("token", token);
+      payload = {"token": token};
+      console.log("payload", payload);
       signup(payload).then( ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data'].result === 'ok'){
           dispatch(setUserName(formState.values.nickName, formState.values.email, "",""));
 //          dispatch(setValidationToken(ret['data']['token']));
           history.push('/validation');
         }
-        else if (ret['data'].result === 'fail')
+        else if (ret['data'].result === 'error')
         {
-          alert(ret['data'].message);
-          history.push('/sign-up');
+          if (ret['data'].message === 'nickName' )
+          store.addNotification({
+            title: 'Info',
+            message: 'Invalid NickName, please input the nickname again!',
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
+          else{
+            store.addNotification({
+              title: 'Info',
+              message: 'This Email is using in our site, please input other email again!',
+              type: 'success',                         // 'default', 'success', 'info', 'warning'
+              container: 'top-right',                // where to position the notifications
+              animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+              animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+              dismiss: {
+                duration: 3000
+              }
+            })  
+          }
+    // alert(ret['data'].message);
+          // history.push('/sign-up');
         }
         else{
-          alert(ret['data'].error);
-          history.push('/sign-up');
+          store.addNotification({
+            title: 'Info',
+            message: 'Failed, please try again',
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
+    // alert(ret['data'].error);
+          // history.push('/sign-up');
         }
       }, err => {
-        alert(err.error);
-        history.push('/sign-up');
+        store.addNotification({
+          title: 'Info',
+          message: 'Failed, please try again',
+          type: 'success',                         // 'default', 'success', 'info', 'warning'
+          container: 'top-right',                // where to position the notifications
+          animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+          animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+          dismiss: {
+            duration: 3000
+          }
+        })
+// alert(err.error);
+        // history.push('/sign-up');
       });
     }
     else{
@@ -257,45 +336,48 @@ const SignUp = props => {
         container
       >
         <Grid
-          className={classes.quoteContainer}
           item
-          lg={5}
+          lg={4}
+          xs={1}
         >
-          <div className={classes.quote}>
-            <div className={classes.quoteInner}>
-              <div className={classes.person}>
-              </div>
-            </div>
-          </div>
-        </Grid>
+          </Grid>
+
         <Grid
           className={classes.content}
           item
-          lg={7}
-          xs={12}
+          lg={4}
+          xs={10}
         >
-          <div className={classes.content}>
-            <div className={classes.contentHeader}>
-              <IconButton onClick={handleBack}>
-                <ArrowBackIcon />
-              </IconButton>
-            </div>
-            <div className={classes.contentBody}>
+          <div >
+          <Card className={classes.CardC}>
+          <CardHeader className={classes.CardH}
+            avatar={
+              <a
+                href="https://thestockwatchlist.com"
+              >
+                <img aria-label="recipe" className={classes.avatar} src="/images/logos/logo.png"/>
+              </a>
+            }
+         />
+          <CardContent>
               <form
                 className={classes.form}
                 onSubmit={handleSignUp}
               >
                 <Typography
                   className={classes.title}
-                  variant="h2"
+                  variant="h3"
+                  style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
                 >
-                  Create new account
+                  Get started with your account
                 </Typography>
                 <Typography
                   color="textSecondary"
                   gutterBottom
+                  variant="h5"
+                  style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
                 >
-                  Use your email to create new account
+                  No credit card required.
                 </Typography>
                 <TextField
                   className={classes.textField}
@@ -376,10 +458,11 @@ const SignUp = props => {
                 <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
                   <ReCAPTCHA
                     ref={recaptchaRef}
-                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
-                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                    // sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
+                    sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
                     onChange={recaptchaverified}
                     onExpired={recaptchatexpired}
+                    hl="en"
                   />
                 </form>
                 <div className={classes.policy}>
@@ -437,8 +520,9 @@ const SignUp = props => {
                   </Link>
                 </Typography>
               </form>
+              </CardContent>
+              </Card>
             </div>
-          </div>
         </Grid>
       </Grid>
     </div>

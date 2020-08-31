@@ -57,7 +57,7 @@ const TopStocks = props => {
               divider={i < stocks.length - 1}
               key={product.id}
             >
-              <ListItemAvatar>
+              <ListItemAvatar style={{marginLeft:"50px"}}>
                 <img
                   alt="Product"
                   className={classes.image}
@@ -67,8 +67,8 @@ const TopStocks = props => {
               <ListItemText
                 primary={product.name}
                 secondary={product.number}
+                style={{marginLeft:"30px"}}
               />
-              <Button variant="outlined" color="primary" size="small">Detail</Button>
             </ListItem>
           ))}
         </List>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState,useLayoutEffect, useEffect, useRef } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid, Avatar, IconButton } from '@material-ui/core';
 import {
@@ -35,19 +35,45 @@ const useStyles = makeStyles(theme => ({
     paddingRight: theme.spacing(2)
   },
 }));
-
+function useWindowSize() {
+  const [size, setSize] = useState(0);
+  useLayoutEffect(() => {
+    function updateSize() {
+      setSize(window.innerWidth);
+    }
+    window.addEventListener('resize', updateSize);
+    updateSize();
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+  return size;
+}
 const NewWatchlist = (props) => {
   const {className, username, useremail, useravatar, myemail} = props;
   const history = useHistory();
   const classes = useStyles();
+  const size = useWindowSize();
   const [name, setName] = React.useState('');
   const [email, setEmail] = React.useState('');
   const [avatar, setAvatar] = React.useState('');
   const [myEmail, setMyEmail] = React.useState('');
   const [flag, setFlag] = React.useState(false);
+  
+  const [width, setWidth] = useState(0);
+  const ref = useRef(null);
+  useEffect(()=>{
+    console.log("dashboardlocalstoragekey",localStorage.key('username'));
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
+
   const handleBack = () => {
     history.goBack();
   };
+  useEffect(() => {
+    console.log("aaaaa",size);
+    setWidth(size);
+  },[size]);
 
   React.useEffect(()=>{
     console.log("newwatchlistprops", username, useremail, myemail);
@@ -77,7 +103,7 @@ const NewWatchlist = (props) => {
             <h2 style={{marginLeft:"10px", marginTop:"5px", fontFamily:'"Roboto", "Helvetica", "Arial", sans-serif'}}>{name}</h2>
           </div>
           {
-            flag == true ? <UserPageWidget userName={name} userEmail={email} userImage={avatar} myEmail={myEmail} /> : <div></div>
+            flag == true ? <UserPageWidget userName={name} userEmail={email} userImage={avatar} myEmail={myEmail} width={width} /> : <div></div>
           }
         </Grid>
       </Grid>

@@ -13,6 +13,7 @@ const initState = {
     vtoken : "",
     vtokenf: "",
     emailf:"",
+    tablesize:5,
     notification:{},
 };
 
@@ -28,6 +29,11 @@ const user = (state={...initState}, action) => {
                 useremail : action.payload.useremail,
                 userimage : action.payload.userimage,
                 userrole : action.payload.userrole,
+            }
+        case 'SET_TABLE_SIZE':
+            return {
+                ...state,
+                tablesize : action.payload
             }
         case 'SET_ALERT':
             console.log("ALERT",action.payload)

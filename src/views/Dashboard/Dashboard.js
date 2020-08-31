@@ -3,6 +3,7 @@ import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Switch from '@material-ui/core/Switch';
+import {useHistory} from 'react-router-dom';
 import {
   UserPageWidget,
 } from './components';
@@ -30,9 +31,17 @@ const Dashboard = () => {
   const size = useWindowSize();
   const [width, setWidth] = useState(0);
   const ref = useRef(null);
+  const history = useHistory();
+
+  useEffect(()=>{
+    console.log("dashboardlocalstoragekey",localStorage.key('username'));
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
 
   useEffect(() => {
-    console.log("aaaaa",size);
+    console.log("aaaaa",size, "aa", ref.current.clientWidth);
     setWidth(ref.current.clientWidth);
   },[size]);
 

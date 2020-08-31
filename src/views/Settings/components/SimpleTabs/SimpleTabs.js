@@ -51,16 +51,22 @@ const SimpleTabs = props => {
         setEmail(useremail);
     }  
     },[username, useremail]);
+
   React.useEffect(()=>{
     if (userName==="" || userEmail==="") 
     {
         return;
     }
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload = {
       'useremail' : userEmail
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     console.log("sharemethodemail", payload);
     getsharemethod(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       console.log("sharemethodresult", ret);
       if(ret['data']['result'] === 'ok'){
         console.log("sharemethod",ret['data']['data']);
@@ -70,6 +76,8 @@ const SimpleTabs = props => {
   },[userName, userEmail])
 
   const handlePrivate = () =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if(method === "2"){
       return;
     }
@@ -78,7 +86,10 @@ const SimpleTabs = props => {
         'useremail' : userEmail,
         'sharemethod' : '2'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
       setsharemethod(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if(ret['data']['result'] === 'ok'){
           store.addNotification({
             title: 'Info',
@@ -98,6 +109,8 @@ const SimpleTabs = props => {
     }
   };
   const handleFollowers = () =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if(method === "1"){
       return;
     }
@@ -106,7 +119,10 @@ const SimpleTabs = props => {
         'useremail' : userEmail,
         'sharemethod' : '1'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
       setsharemethod(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if(ret['data']['result'] === 'ok'){
           store.addNotification({
             title: 'Info',
@@ -127,6 +143,8 @@ const SimpleTabs = props => {
 
   };
   const handleGroup = () =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if(method === "0"){
       return;
     }
@@ -135,7 +153,10 @@ const SimpleTabs = props => {
         'useremail' : userEmail,
         'sharemethod' : '0'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
       setsharemethod(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if(ret['data']['result'] === 'ok'){
           store.addNotification({
             title: 'Info',
@@ -156,6 +177,8 @@ const SimpleTabs = props => {
 
   };
   const handlePublic = () =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if(method === "3"){
       return;
     }
@@ -164,7 +187,10 @@ const SimpleTabs = props => {
         'useremail' : userEmail,
         'sharemethod' : '3'
       }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};      
       setsharemethod(payload).then(ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if(ret['data']['result'] === 'ok'){
           store.addNotification({
             title: 'Info',
@@ -189,25 +215,25 @@ const SimpleTabs = props => {
     <Card>
         <CardContent>
         <div className={classes.root}>
-        <div style={{width:"25%"}}>
+        <div style={{width:"33%"}}>
             <IconButton color={method==="2"?'secondary':'disable'} aria-label="add an private" onClick={()=>handlePrivate()}>
                 <SecurityIcon />
             </IconButton>
             <p style={method==="2"?{fontWeight:"bold", color:"blue"}:{fontWeight:'lighter'}}>Private</p>
         </div>
-        <div style={{width:"25%"}}>
+        <div style={{width:"33%"}}>
             <IconButton color={method==="1"?'secondary':'disable'} aria-label="add an followers" onClick={()=>handleFollowers()}>
                 <SupervisorAccountIcon />
             </IconButton>
             <p style={method==="1"?{fontWeight:"bold", color:"blue"}:{fontWeight:'lighter'}}>Followers</p>
         </div>
-        <div style={{width:"25%"}}>
+        {/* <div style={{width:"25%"}}>
             <IconButton color={method==="0"?'secondary':'disable'} aria-label="add an group" onClick={()=>handleGroup()}>
                 <LanguageIcon />
             </IconButton>
             <p style={method==="0"?{fontWeight:"bold", color:"blue"}:{fontWeight:'lighter'}}>Traders Group</p>
-        </div>
-        <div style={{width:"25%"}}>
+        </div> */}
+        <div style={{width:"33%"}}>
             <IconButton color={method==="3"?'secondary':'disable'} aria-label="add an group" onClick={()=>handlePublic()}>
                 <PublicIcon />
             </IconButton>

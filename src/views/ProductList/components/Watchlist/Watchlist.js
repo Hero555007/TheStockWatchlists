@@ -39,7 +39,7 @@ const useStyles = makeStyles(theme => ({
     fontWeight:700
   },
   avatar: {
-    backgroundColor: theme.palette.error.main,
+    backgroundColor: "#00a64c",
     height: 40,
     width: 40
   },
@@ -85,13 +85,18 @@ const Watchlist = props => {
 
 
   const handleClick = (event) => {
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     setAnchorEl(event.currentTarget);
     let payload = {
       'userEmail' : userEmail,
       'sideEmail' : email
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     console.log('validgroupuser', payload);
     validgroupuser(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       console.log('validgroupuserresult', ret);
       if(ret['data']['result'] == 'ok'){
         setFlag(ret['data']['data']);
@@ -124,20 +129,39 @@ const Watchlist = props => {
       }
     }
     else{
-      history.push('/newwatchlist');
-      setWatchuserInfo(name, email, avatar, userEmail);
-      //    setUrl("/newwatchlist?name=" + name + "&email=" + email + "&avatar=" + avatar + "&myemail=" + myemail);
-          setAnchorEl(null);      
+      if (email == userEmail){
+        history.push('/dashboard')
+      }
+      else{
+        history.push('/newwatchlist');
+        setWatchuserInfo(name, email, avatar, userEmail);
+        //    setUrl("/newwatchlist?name=" + name + "&email=" + email + "&avatar=" + avatar + "&myemail=" + myemail);
+            setAnchorEl(null);        
+      }
     }
   }
   
   React.useEffect(()=>{
+    if (name == "" || email == "") return;
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload = {
       "username" : name,
       "useremail" : email
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     getWatchlist(payload).then(ret=>{
-      setDatas(ret['data']['data']);
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+      console.log("watchlistdata", ret['data']['data']);
+      setDatas(()=>{
+        const _datas = [];
+        (ret['data']['data']||[]).map(item=>{
+          _datas.push(item);
+        })
+        return _datas;
+      })
+      // setDatas(ret['data']['data']);
     })
     setFisrtC(name.substring(0,1).toUpperCase());
   },[name, email]);
@@ -199,7 +223,7 @@ const Watchlist = props => {
           <Grid item>
             <Avatar className={classes.avatar} src={avatar} />
           </Grid> */}
-          <div style={{height:"230px", display:'flex', flexDirection:'row', position:'relative', overflowY:'scroll'}}>
+          <div style={{height:"230px", display:'flex', flexDirection:'row', position:'relative', overflowY:'scroll', width:'100%'}}>
           <Table size="small">
               <TableHead>
                 <TableRow>
@@ -213,10 +237,9 @@ const Watchlist = props => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {datas.map(data => (
+                {(datas||[]).map(data => (
                   <TableRow
                     hover
-                    key={data.symbol}
                   >
                     <TableCell>{data.symbol}</TableCell>
                     <TableCell>{data.currentstockprice}</TableCell>

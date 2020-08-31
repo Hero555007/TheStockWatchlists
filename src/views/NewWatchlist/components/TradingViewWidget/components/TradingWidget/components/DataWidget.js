@@ -40,6 +40,7 @@ const useStyles = makeStyles(theme => ({
     color: 'white',
   }
 }));
+
 const DataWidget = () => {
   const classes = useStyles();
 

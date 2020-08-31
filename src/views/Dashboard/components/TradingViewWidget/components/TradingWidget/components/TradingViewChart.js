@@ -96,7 +96,7 @@ class TradingViewChart extends React.Component {
             padding={0}
             mouseMoveEvent={mouseMoveEvent}
             panEvent={panEvent}
-            zoomEvent={zoomEvent}
+            zoomEvent={false}
             clamp={clamp}
             zoomAnchor={zoomAnchor}
             type={type}

@@ -98,13 +98,18 @@ const AccountProfile = props => {
   },[username, useremail, userimage]);
   
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if (userEmail === ""){
       return;
     }
-    const payload1 = {
+    let payload1 = {
       "useremail" : userEmail,
     }
+    let token = jwt.encode(payload1, secret);
+    payload1 = {"token": token};    
     getuserdata(payload1).then((ret)=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         console.log("userdata", ret['data']['data']);
         setPercentValue(ret['data']['data']['profilecompletepercent']);
@@ -164,14 +169,21 @@ const AccountProfile = props => {
           duration: 3000
         }
       })
-
+      var jwt = require('jwt-simple');
+      let secret = "Hero-Hazan-Trading-Watchlist";  
       console.log(response.data);
       let payload = {
         "username": userName,
         "useremail" : userEmail,
         "avatarurl": response.data['imageurl'],
       }
+      console.log("updateprofilepayload", payload);
+      let token = jwt.encode(payload, secret);
+      console.log("updateprofiletoken", token);
+      payload = {"token": token};      
+      console.log("updateprofilepayload", payload);
       updateprofile(payload).then( ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data'].result === 'ok'){          
           setPercentValue(ret['data']['percentValue']);
           console.log("picture", payload['avatarurl']);
@@ -263,6 +275,7 @@ const AccountProfile = props => {
           <LinearProgress
             value={percentValue}
             variant="determinate"
+            style={{color:"#00a64c"}}
           />
         </div>
       </CardContent>
@@ -270,8 +283,8 @@ const AccountProfile = props => {
       <CardActions>
         <Button
           className={classes.uploadButton}
-          color="primary"
-          variant="text"
+          style={{color:"#00a64c"}}
+          variant="outlined"
           onClick={handleUpload}
         >
           Upload picture

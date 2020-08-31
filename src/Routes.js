@@ -15,6 +15,7 @@ import {
   Settings as SettingsView,
   SignUp as SignUpView,
   SignIn as SignInView,
+  Login as LoginView,
   NotFound as NotFoundView,
   Validation as ValidationView,
   ValidationForget as ValidationForgetView,
@@ -40,6 +41,12 @@ const Routes = () => {
         path="/dashboard"
       />
       <RouteWithLayout
+        component={LoginView}
+        layout={MinimalLayout}
+        exact
+        path="/log-in"
+      />
+      <RouteWithLayout
         component={UserListView}
         exact
         layout={MainLayout}
@@ -49,7 +56,7 @@ const Routes = () => {
         component={AdminPanelView}
         exact
         layout={MainLayout}
-        path="/admin-panel"
+        path="/admin-page-login-only"
       />
       <RouteWithLayout
         component={UserListFView}

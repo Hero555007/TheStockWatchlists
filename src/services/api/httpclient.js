@@ -51,6 +51,70 @@ const deleteuserPath = 'api/deleteuser'
 const activeverifyPath = 'api/activeverify'
 const resendcodePath = 'api/resendcode'
 const validgroupuserPath = 'api/validgroupuser'
+const setstockpriceintervaltimePath = 'api/setstockpriceintervaltime'
+const getcurrentusersnumberPath = 'api/getcurrentusersnumber'
+const getlogedusersnumberPath = 'api/getlogedusersnumber'
+const gettotalusersnumberPath = 'api/gettotalusersnumber'
+const getstockpriceintervaltimePath = 'api/getstockpriceintervaltime'
+const logoutPath = 'api/logout'
+
+export function logout(data){
+    return new Promise((resolve,reject) =>
+        post(logoutPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getstockpriceintervaltime(data){
+    return new Promise((resolve,reject) =>
+        get(getstockpriceintervaltimePath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+export function gettotalusersnumber(data){
+    return new Promise((resolve,reject) =>
+        get(gettotalusersnumberPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+export function getlogedusersnumber(data){
+    return new Promise((resolve,reject) =>
+        get(getlogedusersnumberPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getcurrentusersnumber(data){
+    return new Promise((resolve,reject) =>
+        get(getcurrentusersnumberPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function setstockpriceintervaltime(data){
+    return new Promise((resolve,reject) =>
+        post(setstockpriceintervaltimePath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
 
 export function validgroupuser(data){
     return new Promise((resolve,reject) =>

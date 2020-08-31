@@ -69,7 +69,7 @@ const EarningReportStocks = props => {
               divider={i < products.length - 1}
               key={product.id}
             >
-              <ListItemAvatar>
+              <ListItemAvatar style={{marginLeft:"50px"}}>
                 <img
                   className={classes.image}
                   src={product.imageUrl}
@@ -78,8 +78,8 @@ const EarningReportStocks = props => {
               <ListItemText
                 primary={product.name}
                 secondary={product.date}
+                style={{marginLeft:"30px"}}
               />
-              <Button variant="outlined" color="primary" size="small">Detail</Button>
             </ListItem>
           ))}
         </List>

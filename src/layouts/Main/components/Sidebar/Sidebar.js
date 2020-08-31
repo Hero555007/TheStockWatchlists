@@ -47,7 +47,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Sidebar = props => {
-  const { open, variant, onClose, className,useremail, ...rest } = props;
+  const { open, variant, onClose, className,useremail,closehandle, ...rest } = props;
 
   const classes = useStyles();
   const pages = [
@@ -81,11 +81,11 @@ const Sidebar = props => {
       href: '/settings',
       icon: <SettingsIcon />
     },
-    {
-      title: 'Chat',
-      href: '/chat',
-      icon: <ChatIcon />
-    }
+    // {
+    //   title: 'Chat',
+    //   href: '/chat',
+    //   icon: <ChatIcon />
+    // }
   ];
   const [userEmail, setEmail] = React.useState("");
   const [pagelist, setPagelist] = React.useState(pages);
@@ -93,26 +93,43 @@ const Sidebar = props => {
   React.useEffect(()=>{
     if (useremail === "")
     {
-      return;
+      setEmail(localStorage.getItem('useremail'));
     }
+    else{
       setEmail(useremail);
+    }
   },[useremail]);
 
   React.useEffect(()=>{
+    if (userEmail == "") return;
+    console.log("Topbaremail", userEmail);
     if (userEmail == "admin@admin.com")
     {
       setPagelist(()=>{
         const _pagelist = [...pagelist];
         _pagelist.push({
           title: 'Admin Panel',
-          href: '/admin-panel',
+          href: '/admin-page-login-only',
           icon: <PersonIcon />
         })
       return _pagelist;
       })
     }
+    else{
+      setPagelist(()=>{
+        const _pagelist = [...pagelist];
+        _pagelist.push({
+          title: 'Chat',
+          href: '/chat',
+          icon: <ChatIcon />
+        })
+      return _pagelist;
+      })
+    }
   },[userEmail]);
-
+  const cclosehandle = (param)=>{
+    closehandle(param);
+  }
 
   return (
     <Drawer
@@ -131,6 +148,7 @@ const Sidebar = props => {
         <SidebarNav
           className={classes.nav}
           pages={pagelist}
+          cclosehandle = {cclosehandle}
         />
       </div>
     </Drawer>

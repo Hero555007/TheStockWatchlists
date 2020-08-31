@@ -120,11 +120,17 @@ const UsersTable = props => {
   };
 
   const handleRemove = (sideEmail) =>{
+    if (sideEmail == 'admin@admin.com') return;
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload={
       'useremail' : sideEmail,
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};     
     console.log("removefollowers", payload);
     deleteuser(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         console.log("userfollowers",ret['data']['data']);
         console.log("userfollowers", payload);
@@ -152,7 +158,7 @@ const UsersTable = props => {
                   <TableCell padding="checkbox">
                     <Checkbox
                       checked={selectedUsers.length === Users.length}
-                      color="primary"
+                      style={{color:"#00a64c"}}
                       indeterminate={
                         selectedUsers.length > 0 &&
                         selectedUsers.length < Users.length
@@ -184,7 +190,7 @@ const UsersTable = props => {
                       <TableCell padding="checkbox">
                         <Checkbox
                           checked={selectedUsers.indexOf(user.id) !== -1}
-                          color="primary"
+                          style={{color:"#00a64c"}}
                           onChange={event => handleSelectOne(event, user.id)}
                           value="true"
                         />
@@ -212,7 +218,7 @@ const UsersTable = props => {
                       <TableCell>{user.activeflag}</TableCell>
                       <TableCell>{user.sharemethod}</TableCell>
                       <TableCell>
-                        <Button variant="outlined" color="primary" onClick={()=>handleRemove(user.email)} >Remove</Button>
+                        <Button variant="outlined" style={{color:"#00a64c"}} onClick={()=>handleRemove(user.email)} >Remove</Button>
                       </TableCell>
                     </TableRow>
                     

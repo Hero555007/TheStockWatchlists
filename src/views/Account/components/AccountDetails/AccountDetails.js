@@ -73,13 +73,19 @@ const AccountDetails = props => {
   });
 
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if (userEmail === ""){
       return;
     }
-    const payload1 = {
+    let payload1 = {
       "useremail" : userEmail,
     }
+    let token = jwt.encode(payload1, secret);
+    payload1 = {"token": token};
     getuserdata(payload1).then((ret)=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+      console.log("userdata", ret['data']);
       if (ret['data']['result'] === 'ok'){
         console.log("userdata11", ret['data']['data']);
         setValues(ret['data']['data']);
@@ -163,17 +169,27 @@ const AccountDetails = props => {
   };
 
   const OnSaveprofile=()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     console.log("profilevalues", values)
-    const payload = {...values};
+    let payload = {...values};
     payload['username'] = userName;
     payload['useremail'] = userEmail;
+    console.log("saveprofilepayload", payload);
+    let token = jwt.encode(payload, secret);
+    console.log("saveprofiletoken", token);
+    payload = {"token": token};      
     updateprofile(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if(ret['data'].result === 'ok'){
-        const payload1 = {
+        let payload1 = {
           "useremail" : userEmail,
         }
-        getuserdata(payload1).then((ret)=>{
-          if (ret['data']['result'] === 'ok'){
+        let token1 = jwt.encode(payload1, secret);
+        payload1 = {"token": token1};    
+        getuserdata(payload1).then((ret1)=>{
+          ret1['data'] = jwt.decode(ret1['data']['result'].substring(2,ret1['data']['result'].length - 2), secret, true);  
+          if (ret1['data']['result'] === 'ok'){
             store.addNotification({
               title: 'Success',
               message: 'Saved your profile',
@@ -186,7 +202,7 @@ const AccountDetails = props => {
               }
             })
       
-            onUpdate(ret['data']['data']);
+            onUpdate(ret1['data']['data']);
           }
         });
       }
@@ -649,7 +665,7 @@ const AccountDetails = props => {
                       checked={values.privatemessageflag}
                       onChange={handleChange}
                       name="pmf"
-                      color="primary"
+                      style={{color:"#00a64c"}}
                   />
                 }
                 label="Private Message Setting"
@@ -668,7 +684,7 @@ const AccountDetails = props => {
                       checked={values.shareflag}
                       onChange={handleChange}
                       name="share"
-                      color="primary"
+                      style={{color:"#00a64c"}}
                   />
                 }
                 label="Share Watchlist Setting"
@@ -679,7 +695,7 @@ const AccountDetails = props => {
         <Divider />
         <CardActions>
           <Button
-            color="primary"
+            style={{color:"#00a64c"}}
             variant="contained"
             onClick={OnSaveprofile}
           >

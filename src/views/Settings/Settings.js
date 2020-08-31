@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
 import { WatchlistTemplate, ShareWatchlistTemplate, SimpleTabs, AddNewColumnForWatchlist } from './components';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -12,6 +13,13 @@ const useStyles = makeStyles(theme => ({
 
 const Settings = () => {
   const classes = useStyles();
+  const history = useHistory();
+  useEffect(()=>{
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
+
 
   return (
     <div className={classes.root}>

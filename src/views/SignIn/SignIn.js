@@ -6,17 +6,27 @@ import {signin} from './../../services/api/httpclient';
 import {connect} from 'react-redux';
 import {setUserName} from './../../redux/actions'
 import {setUserToken} from './../../redux/actions'
-import { makeStyles } from '@material-ui/styles';
+import { makeStyles,withStyles } from '@material-ui/styles';
 import {
   Grid,
   Button,
   IconButton,
   TextField,
   Link,
-  Typography
+  Typography,
+  CardContent
 } from '@material-ui/core';
 import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ReCAPTCHA from 'react-google-recaptcha'
+import Card from '@material-ui/core/Card';
+import CardHeader from '@material-ui/core/CardHeader';
+import { card } from 'assets/jss/material-kit-react';
+import Avatar from '@material-ui/core/Avatar';
+import Autocomplete from '@material-ui/lab/Autocomplete';
+import { store } from 'react-notifications-component';
+import 'react-notifications-component/dist/theme.css';
+import 'animate.css';
+
 
 const schema = {
   email: {
@@ -36,11 +46,13 @@ const schema = {
 
 const useStyles = makeStyles(theme => ({
   root: {
-    backgroundColor: theme.palette.background.default,
-    height: '100%'
+    backgroundColor: "#e4ebfe",
+    backgroundSize:'cover',
+    backgroundPosition:"top center",
+    backgroundImage:'url(/images/background.jpg)',
   },
   grid: {
-    height: '100%'
+    height: '100%',
   },
   quoteContainer: {
     [theme.breakpoints.down('md')]: {
@@ -77,7 +89,7 @@ const useStyles = makeStyles(theme => ({
   content: {
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   contentHeader: {
     display: 'flex',
@@ -121,11 +133,34 @@ const useStyles = makeStyles(theme => ({
     marginTop: theme.spacing(2)
   },
   textField: {
-    marginTop: theme.spacing(2)
+    marginTop: theme.spacing(2),
+    color:"white",
   },
   signInButton: {
-    margin: theme.spacing(2, 0)
-  }
+    margin: theme.spacing(2, 0),
+    [theme.breakpoints.down('sm')]: {
+      marginTop: theme.spacing(8),
+    }
+  },
+  CardC : {
+    marginTop:"15%",
+    backgroundColor:"#ffffff",
+    marginBottom:"300px"
+  },
+  CardH : {
+    margin:"0",
+    backgroundColor: "#e4ebfe",
+  },
+  avatar: {
+    height:"50px",
+    display:"block",
+    marginLeft:'auto',
+    marginRight:'auto',
+    width:"150px"
+  },
+  multilineColor:{
+    color:'#e3eaef'
+  },
 }));
 
 const SignIn = props => {
@@ -180,15 +215,21 @@ const SignIn = props => {
 
   const handleSignIn = event => {
     event.preventDefault();
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
+
     if (isverified == true)
     {
       let payload = {
         "email": formState.values.email,
         "password": formState.values.password
       }
-  
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};
       signin(payload).then( ret=>{
+        ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
         if (ret['data'].result === 'ok'){
+          console.log("loginA")
           if (ret['data']['activeflag'] === true)
           {
             console.log(ret['data']);
@@ -196,6 +237,7 @@ const SignIn = props => {
             localStorage.setItem('username', ret['data']['name']);
             localStorage.setItem('useremail', ret['data']['email']);
             localStorage.setItem('userrole', "2");
+            localStorage.setItem('storagedate', Date.now());
             dispatch(setUserName(ret['data']['name'], ret['data']['email'], ret['data']['image'],ret['data']['role']));
             dispatch(setUserToken(ret['data']['access_token']));
             history.push({
@@ -205,17 +247,50 @@ const SignIn = props => {
           }
         }
         else if(ret['data'].result === 'fail'){
-          alert(ret['data'].message);
-          history.push('/sign-up');
+          console.log("loginB")
+          store.addNotification({
+            title: 'Error',
+            message: "wrong password",
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
         }
         else {
-          alert(ret['data'].error);
+          console.log("loginC")
+          store.addNotification({
+            title: 'Error',
+            message: ret['data'].error,
+            type: 'success',                         // 'default', 'success', 'info', 'warning'
+            container: 'top-right',                // where to position the notifications
+            animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+            animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+            dismiss: {
+              duration: 3000
+            }
+          })
           history.push('/sign-up');
         }
-      }, err => {
-        alert(err.error);
+      }).catch(err=>{
+        console.log("loginD", err);
+        // store.addNotification({
+        //   title: 'Error',
+        //   message: "server issue",
+        //   type: 'error',                         // 'default', 'success', 'info', 'warning'
+        //   container: 'top-right',                // where to position the notifications
+        //   animationIn: ["animated", "fadeIn"],     // animate.css classes that's applied
+        //   animationOut: ["animated", "fadeOut"],   // animate.css classes that's applied
+        //   dismiss: {
+        //     duration: 3000
+        //   }
+        // })
         history.push('/sign-up');
-      });
+
+      }) 
     }
     else{
 
@@ -240,118 +315,137 @@ const SignIn = props => {
         container
       >
         <Grid
-          className={classes.quoteContainer}
           item
-          lg={5}
+          lg={4}
+          xs={1}
         >
-          <div className={classes.quote}>
-            <div className={classes.quoteInner}>
-              <div className={classes.person}>
-              </div>
-            </div>
-          </div>
-        </Grid>
+          </Grid>
         <Grid
           className={classes.content}
           item
-          lg={7}
-          xs={12}
+          lg={4}
+          xs={10}
         >
-          <div className={classes.content}>
-            <div className={classes.contentHeader}>
-              <IconButton onClick={handleBack}>
-                <ArrowBackIcon />
-              </IconButton>
-            </div>
-            <div className={classes.contentBody}>
-              <form
-                className={classes.form}
-                onSubmit={handleSignIn}
+          <div>
+          <Card className={classes.CardC}>
+          <CardHeader className={classes.CardH}
+            avatar={
+              <a
+                href="https://thestockwatchlist.com"
               >
-                <Typography
-                  className={classes.title}
-                  variant="h2"
+                <img aria-label="recipe" className={classes.avatar} src="/images/logos/logo.png" />
+              </a>
+            }
+         />
+          <CardContent>
+                <form
+                  onSubmit={handleSignIn}
                 >
-                  Sign in
-                </Typography>
-                <TextField
-                  className={classes.textField}
-                  error={hasError('email')}
-                  fullWidth
-                  helperText={
-                    hasError('email') ? formState.errors.email[0] : null
-                  }
-                  label="Email address"
-                  name="email"
-                  onChange={handleChange}
-                  type="text"
-                  value={formState.values.email || ''}
-                  variant="outlined"
-                />
-                <TextField
-                  className={classes.textField}
-                  error={hasError('password')}
-                  fullWidth
-                  helperText={
-                    hasError('password') ? formState.errors.password[0] : null
-                  }
-                  label="Password"
-                  name="password"
-                  onChange={handleChange}
-                  type="password"
-                  value={formState.values.password || ''}
-                  variant="outlined"
-                />
-                <Typography
-                  color="textSecondary"
-                  variant="body1"
-                  style={{paddingBottom:"50px", paddingTop:"10px", float:"right"}}
-                >
-                  Forget {' '}
-                  <Link
-                    component={RouterLink}
-                    to="/forget-password"
-                    variant="h6"
+                  <Typography
+                    className={classes.title}
+                    variant="h4"
+                    style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
                   >
-                    Password?
-                  </Link>
-                </Typography>
-                <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
-                  <ReCAPTCHA
-                    ref={recaptchaRef}
-                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
-                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
-                    onChange={recaptchaverified}
-                    onExpired={recaptchatexpired}
+                    Sign in
+                  </Typography>
+                  <Typography
+                    className={classes.title}
+                    variant="h3"
+                    style={{fontFamily:"Nunito,sans-serif", color:"#474d56", fontWeight:"bolder",textAlign:"center"}}
+                  >
+                    Welcome to Thestockwatchlist
+                  </Typography>
+                  <Typography
+                    className={classes.title}
+                    variant="h6"
+                    style={{fontFamily:"Nunito,sans-serif", textAlign:"center"}}
+                  >
+                    Please log in to get access.
+                  </Typography>
+                  <TextField
+                    className={classes.textField}
+                    error={hasError('email')}
+                    fullWidth
+                    helperText={
+                      hasError('email') ? formState.errors.email[0] : null
+                    }
+                    label="Email address"
+                    name="email"
+                    onChange={handleChange}
+                    type="text"
+                    value={formState.values.email || ''}
+                    variant="outlined"
                   />
-                </form>
-
-                <Button
-                  className={classes.signInButton}
-                  color="primary"
-                  disabled={!formState.isValid}
-                  fullWidth
-                  size="large"
-                  type="submit"
-                  variant="contained"
-                >
-                  Sign in now
-                </Button>
-                <Typography
-                  color="textSecondary"
-                  variant="body1"
-                >
-                  Don't have an account?{' '}
-                  <Link
-                    component={RouterLink}
-                    to="/sign-up"
-                    variant="h6"
+                  <TextField
+                    className={classes.textField}
+                    error={hasError('password')}
+                    fullWidth
+                    helperText={
+                      hasError('password') ? formState.errors.password[0] : null
+                    }
+                    label="Password"
+                    name="password"
+                    onChange={handleChange}
+                    type="password"
+                    value={formState.values.password || ''}
+                    variant="outlined"
+                  />
+                  <div style={{width:"100%"}}>
+                  <Typography
+                    color="textSecondary"
+                    variant="body1"
+                    style={{paddingBottom:"5px", paddingTop:"10px", float:"right"}}
                   >
-                    Sign up
-                  </Link>
-                </Typography>
-              </form>
-            </div>
+                    Forget {' '}
+                    <Link
+                      component={RouterLink}
+                      to="/forget-password"
+                      variant="h6"
+                    >
+                      Password?
+                    </Link>
+                  </Typography>
+                  </div>
+                  <div>
+                  <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      // sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
+                      sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                      onChange={recaptchaverified}
+                      onExpired={recaptchatexpired}
+                      hl="en"
+                    />
+                  </form>
+                  </div>
+                  <Button
+                    className={classes.signInButton}
+                    color="primary"
+                    disabled={!formState.isValid}
+                    fullWidth
+                    size="large"
+                    type="submit"
+                    variant="contained"
+                    style={{color:'white'}}
+                  >
+                    Sign in now
+                  </Button>
+                  <Typography
+                    color="textSecondary"
+                    variant="body1"
+                  >
+                    Don't have an account?{' '}
+                    <Link
+                      component={RouterLink}
+                      to="/sign-up"
+                      variant="h6"
+                    >
+                      Sign up
+                    </Link>
+                  </Typography>
+                </form>
+          </CardContent>
+          </Card>
           </div>
         </Grid>
       </Grid>

@@ -54,7 +54,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const CLeftSidebar = (props) => {
-  const { open, variant, onClose, onChange, className,username, useremail,notificationperson, ...rest } = props;
+  const { open, variant, onClose, closehandle, onChange, className,username, useremail,notificationperson, ...rest } = props;
 
   const classes = useStyles();
 
@@ -92,10 +92,15 @@ const CLeftSidebar = (props) => {
     }  
   },[username, useremail]);
   const getContacts = ()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     let payload = {
       'from' : userEmail
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     getowncontacts(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         console.log('contactresult', ret['data']['data']);
         setPages(ret['data']['data']);
@@ -104,6 +109,8 @@ const CLeftSidebar = (props) => {
   }
 
   React.useEffect(()=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";
     if (!userName.length || !userEmail.length) return;
     console.log("usernameuseremail", userName, userEmail, notificationperson);
     getContacts();
@@ -111,7 +118,10 @@ const CLeftSidebar = (props) => {
     let payload = {
       'useremail' : userEmail
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};    
     getuserdata(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if(ret['data']['result'] === 'ok'){
         console.log("pmsetting",ret['data']['data']['privatemessageflag']);
         setMessageflag(ret['data']['data']['privatemessageflag']);
@@ -120,6 +130,8 @@ const CLeftSidebar = (props) => {
   },[userName, userEmail, notificationperson])
 
   const handleonChange = (event) =>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     if (messageflag == false) {
       store.addNotification({
         title: 'Info',
@@ -138,6 +150,8 @@ const CLeftSidebar = (props) => {
       "searchtext" : event.target.value,
       "useremail" : userEmail
     };
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};      
     setCloseText("block");
     setSearchText(event.target.value);
     if (event.target.value === "")
@@ -147,6 +161,7 @@ const CLeftSidebar = (props) => {
     }
     console.log("contactpayload", payload);
     getcontacts(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] === 'ok'){
         setPages(ret['data']['data']);
       }
@@ -156,6 +171,9 @@ const CLeftSidebar = (props) => {
     setCloseText('none');
     setSearchText("");
     getContacts();
+  }
+  const cclosehandle = (param)=>{
+    closehandle(param);
   }
   return (
     <Drawer
@@ -179,7 +197,7 @@ const CLeftSidebar = (props) => {
         justifyContent: 'center',
         alignItems: 'center'}}>
             <div>
-              <h3 style={{marginBottom:"20px"}}>Contacts</h3>
+              <h3 style={{marginBottom:"20px", fontFamily:'"Roboto", "Helvetica", "Arial", sans-serif', marginLeft:"15px"}}>Contacts</h3>
               <TextField            
               className={classes.margin}
               id="input-with-icon-textfield"
@@ -214,6 +232,7 @@ const CLeftSidebar = (props) => {
           selected={selected}
           onChange={handleChangeMenu}
           notificationperson={notificationperson}
+          cclosehandle = {cclosehandle}
         />
       </div>
     </Drawer>

@@ -1,8 +1,9 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
 
 import { AccountProfile, AccountDetails } from './components';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -13,6 +14,13 @@ const useStyles = makeStyles(theme => ({
 const Account = () => {
   const classes = useStyles();
   const [datas, setDatas] = React.useState({});
+  const history = useHistory();
+  useEffect(()=>{
+    if (localStorage.key('username') == null){
+      history.push('/sign-in');
+    }
+  },[])
+
 
   const updatedata=(data)=>{
     console.log("profilechange", data);

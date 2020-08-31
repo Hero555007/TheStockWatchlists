@@ -13,6 +13,7 @@ import { Provider } from "react-redux"
 import store from "./redux/store/index";
 
 import ReactNotifications from 'react-notifications-component';
+import { now } from 'underscore';
 
 const browserHistory = createBrowserHistory();
 
@@ -42,6 +43,19 @@ export const styles = (theme) => ({
 
 
 class App extends Component {
+  componentDidMount ()
+  {
+    console.log("storagedata", localStorage.key("storagedate"));
+    if (localStorage.key("storagedate") != null){
+      const nowtime = Date.now();
+      const beforetime = localStorage.getItem("storagedate");
+      const inteval = nowtime - beforetime;
+      console.log("storagedatainterval", inteval);
+      if (inteval > 72 * 60 * 60 * 1000){
+        localStorage.clear();
+      }
+    }
+  }
   render() {
     return (
       <div style={{height:'100%'}}>

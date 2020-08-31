@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import clsx from 'clsx';
-import PerfectScrollbar from 'react-perfect-scrollbar';
 import PropTypes from 'prop-types';
 import { Avatar, useMediaQuery } from '@material-ui/core';
 import { makeStyles } from '@material-ui/styles';
@@ -19,8 +18,7 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Tooltip,
-  TableSortLabel
+  Grid
 } from '@material-ui/core';
 import user from 'redux/reducers/user';
 import { object } from 'underscore';
@@ -33,13 +31,18 @@ function mapDispatchToProps(dispatch) {
   };
 }
 const useStyles = makeStyles(theme => ({
-  root: {},
+  root: {
+    overflowX:'scroll',
+    position:'relative',
+    marginBottom:'10px',
+  },
   content: {
-    padding: 0,
     maxHeight:"370px",
     minHeight:"350px",
-    overflowY:'scroll',
-    overflowX:'scroll'
+    alignItems: 'center',
+    display: 'flex'
+  },
+  headerC :{
   },
   inner: {
     minWidth: 600
@@ -55,7 +58,7 @@ const useStyles = makeStyles(theme => ({
     justifyContent: 'flex-end'
   },
   avatar: {
-    backgroundColor: 'blue',
+    backgroundColor: '#00a64c',
     width: 30,
     height: 30
   },
@@ -98,13 +101,15 @@ const MostFollowedUsers = props => {
 
   const setflag=(user)=>{
     if (user.email != userEmail){
-      return <Button variant="outlined" color="primary" onClick ={() => setuser(user)}>Follow</Button>
+      return <Button variant="outlined" style={{color:"#00a64c"}} onClick ={() => setuser(user)}>Follow</Button>
     }
     else{
-      return <Button variant="outlined" color="primary" disabled>Follow</Button>
+      return <Button variant="outlined" style={{color:"#00a64c"}} disabled>Follow</Button>
     }
   }
   const setuser=(rowdata)=>{
+    var jwt = require('jwt-simple');
+    let secret = "Hero-Hazan-Trading-Watchlist";  
     setOpen(true);
     console.log("useremail", useremail, "userEmail", userEmail)
     console.log("rowdata", rowdata);
@@ -112,8 +117,11 @@ const MostFollowedUsers = props => {
       'Suseremail' : userEmail,
       'Duseremail' : rowdata.email
     }
+    let token = jwt.encode(payload, secret);
+    payload = {"token": token};    
     console.log("userpayload", payload);
     setfollowers(payload).then(ret=>{
+      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
       if (ret['data']['result'] == 'ok'){
         console.log("ok");
         console.log("followlist", FollowersList);
@@ -134,7 +142,6 @@ const MostFollowedUsers = props => {
   // const [user] = useState(mockData);
 
   return (
-    <>
     <Card
       {...rest}
       className={clsx(classes.root, className)}
@@ -151,16 +158,18 @@ const MostFollowedUsers = props => {
         // }
         title="Most-Followed Users"
       />
-      <Divider />
       <CardContent className={classes.content}>
-        <PerfectScrollbar>
-          <div className={classes.inner}>
+      <Grid
+          container
+          justify="space-between"
+        >
+          <div style={{height:"370px", display:'flex', flexDirection:'row', position:'relative', overflowY:'scroll', width:'100%'}}>
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>Avatar</TableCell>
+                  {/* <TableCell>Avatar</TableCell> */}
                   <TableCell>UserName</TableCell>
-                  <TableCell>Followed Numbers</TableCell>
+                  <TableCell>Followed<br></br>Numbers</TableCell>
                   <TableCell>Actions</TableCell>
                 </TableRow>
               </TableHead>
@@ -168,7 +177,6 @@ const MostFollowedUsers = props => {
                 {(FollowersList || []).map(user => (
                   <TableRow
                     hover
-                    key={user.id}
                   >
                     <TableCell>
                       <Avatar
@@ -176,8 +184,9 @@ const MostFollowedUsers = props => {
                         className={classes.avatar}
                         src={user.avatar}
                       >{user.username.substring(0,1).toUpperCase()}</Avatar>
+                      {user.username}
                     </TableCell>
-                    <TableCell>{user.username}</TableCell>
+                    {/* <TableCell>{user.username}</TableCell> */}
                     <TableCell>{user.numbers}</TableCell>
                     <TableCell>{setflag(user)}
                       {/* <Button variant="outlined" color="primary" onClick ={() => setuser(user)}>Follow</Button> */}
@@ -187,27 +196,9 @@ const MostFollowedUsers = props => {
               </TableBody>
             </Table>
           </div>
-        </PerfectScrollbar>
+        </Grid>
       </CardContent>
-      <Divider />
-      {/* <CardActions className={classes.actions}>
-        <Button
-            color="primary"
-            size="small"
-            variant="text"
-        >
-          <ArrowLeftIcon /> Previous 
-        </Button>
-        <Button
-          color="primary"
-          size="small"
-          variant="text"
-        >
-          Next <ArrowRightIcon />
-        </Button>
-      </CardActions> */}
     </Card>
-    </>
   );
 };
 

@@ -43,7 +43,7 @@ const OtherChatItem = (props) => {
           </div>
           <div style={{display:'flex', flexDirection: 'column', marginLeft: '10px', paddingTop: '8px'}}>
               <div style={{flex: 1, fontSize: '17px', fontFamily:"'Open Sans', sans-serif", fontWeight:"bold", color: 'black',alignItems: 'center'}}>{messagedata.name}</div>
-              <div style={{flex: 1, fontSize: '13px', color: 'blue',fontFamily:'"Roboto", "Helvetica", "Arial", sans-serif', fontWeight:'bold',alignItems: 'center'}}>{messagedata.time}</div>
+              <div style={{flex: 1, fontSize: '13px', color: 'blue',fontFamily:'"Roboto", "Helvetica", "Arial", sans-serif', fontWeight:'bold',alignItems: 'center',color:"#00a64c"}}>{messagedata.time}</div>
           </div>
         </div>
         <div className={classes.content}>
