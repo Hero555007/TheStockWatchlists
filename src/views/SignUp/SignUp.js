@@ -352,8 +352,13 @@ const SignUp = props => {
           <Card className={classes.CardC}>
           <CardHeader className={classes.CardH}
             avatar={
+              // <a
+              //   href="https://thestockwatchlist.com"
+              // >
+              //   <img aria-label="recipe" className={classes.avatar} src="/images/logos/logo.png"/>
+              // </a>
               <a
-                href="https://thestockwatchlist.com"
+                href="https://dev.thestockwatchlist.com"
               >
                 <img aria-label="recipe" className={classes.avatar} src="/images/logos/logo.png"/>
               </a>
@@ -458,8 +463,9 @@ const SignUp = props => {
                 <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
                   <ReCAPTCHA
                     ref={recaptchaRef}
-                    // sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV"
-                    sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_"
+                    sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV" //localhost
+                    // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_" //prodserver
+                    // sitekey="6LcjOMMZAAAAAGH8z14MefI5__CY8DHNz-ZZDuZd" // devserver
                     onChange={recaptchaverified}
                     onExpired={recaptchatexpired}
                     hl="en"

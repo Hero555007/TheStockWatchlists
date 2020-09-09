@@ -1,0 +1,7 @@
+--localhost--
+REACT_APP_API_URL = 'http://localhost:81/'
+PORT=3000
+--prodserver--
+REACT_APP_API_URL = 'http://app.thestockwatchlist.com/'
+--devserver--
+REACT_APP_API_URL = 'http://appdev.thestockwatchlist.com/'

@@ -237,13 +237,13 @@ const UserPageWidget = (props) => {
             console.log("item_",item_, ret);
             const item = {...item_}
             if (item.symbolname === ret.data.symbolname) {
+              item.currentstockprice = ret.data.price;
               if (item.currentstockprice === 0){
                 item.currentchange = 0;                
               }
               else{
                 item.currentchange =ret.data.pricechange;
               }
-              item.currentstockprice = ret.data.price;
               item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
               if (item.alertprice != null && item.alertprice != "0")
               {
@@ -293,7 +293,7 @@ const UserPageWidget = (props) => {
           alert(err.error);
         });       
       });
-      const timerID = setInterval(() => {
+      const timerId = setInterval(() => {
         (symbol || []).map(item =>{
           let payload = {
               "symbol": item.symbol,
@@ -365,7 +365,7 @@ const UserPageWidget = (props) => {
       }, time);
       setTimerId((prevTimerId) => {
         clearInterval(prevTimerId);
-        return timerID;
+        return timerId;
       });
       // setStatus(()=>{
       //   return !status;
