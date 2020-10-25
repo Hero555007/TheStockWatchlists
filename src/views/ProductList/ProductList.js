@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { makeStyles } from '@material-ui/styles';
 import { Grid } from '@material-ui/core';
-import {searchglobalfollowers, getearningstocks, gettopstocks, getshortlong, gettopstocksforshortlong, getglobalfollowerslist} from '../../services/api/httpclient';
+import {searchglobalfollowers, getearningstocks, gettopstocks, getshortlong, gettopstocksforshortlong, getglobalfollowerslist, getstockpriceintervaltime} from '../../services/api/httpclient';
 import {
   EarningReportStocks,
   MostFollowedUsers,
@@ -46,21 +46,33 @@ const ProductList = props => {
   var count = 0;
   const [products, setProducts] = useState([]);
   const [stocks, setStocks] = useState([]);
+  const [weekstocks, setWeekStocks] = useState([]);
   const [shortorlong, setShortorlong] = useState('');
+  const [weekshortorlong, setWeekShortorlong] = useState('');
   const [shortdata, setShortdata] = useState([]);
+  const [weekshortdata, setWeekShortdata] = useState([]);
   const [longdata, setLongdata] = useState([])
+  const [weeklongdata, setWeekLongdata] = useState([])
   const [followerslist, setFollowerslist] = useState([])
   const [openText, setOpenText] = React.useState("block");
   const [searchText, setSearchText] = React.useState("");
   const [progress, setProgress] = React.useState(0);
   const [userEmail, setEmail] = React.useState("");
   const [open, setOpen] = React.useState(true);
+  const [intervaltime, setIntervaltime] = React.useState(0);
   useEffect(()=>{
     if (localStorage.key('username') == null){
       history.push('/sign-in');
     }
   },[])
-
+  React.useEffect(()=>{
+    getstockpriceintervaltime().then(ret=>{
+      if (ret['data']['result'] == 'ok'){
+        setIntervaltime(parseInt(ret['data']['data']) * 1000 * 60);
+        // setIntervaltime(1000 * 60 * 0.5);
+      }
+    })
+  },[])
   React.useEffect(()=>{
     if (useremail === "")
     {
@@ -91,18 +103,22 @@ const ProductList = props => {
               if (ret['data']['result'] === 'ok'){
                 console.log("topproducts", ret['data']['data']);
                 setStocks(ret['data']['data']);
+                setWeekStocks(ret['data']['weekdata']);
                 setProgress(60);
                 getshortlong().then(ret=>{
                   if (ret['data']['result'] === 'ok'){
                     console.log("shortorlong", ret['data']['data']);
                     setShortorlong(ret['data']['data']);
+                    setWeekShortorlong(ret['data']['weekdata']);
                     setProgress(80);
                     gettopstocksforshortlong().then(ret=>{
                       if (ret['data']['result'] === 'ok'){
                         setProgress(100);
                         console.log("shortorlong", ret['data']['data']);
                         setShortdata(ret['data']['shortdata']);
+                        setWeekShortdata(ret['data']['weekshortdata']);
                         setLongdata(ret['data']['longdata']);
+                        setWeekLongdata(ret['data']['weeklongdata']);
                         setOpenText("none");
                       }
                     });
@@ -112,9 +128,59 @@ const ProductList = props => {
             });
               }
         });
-            }
+      }
     });
-  },[]);
+    if (intervaltime != 0)
+    {
+      setInterval(()=>{
+        console.log("setintervaltime");
+        getglobalfollowerslist().then(ret=>{
+          ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);        
+          if (ret['data']['result'] === 'ok'){
+            setFollowerslist(ret['data']['data']);
+            setTimeout(()=>{
+              setOpen(false);
+            }, 1000)
+            setProgress(20);
+            getearningstocks().then(ret=>{
+              if (ret['data']['result'] === 'ok'){
+                console.log("products", ret['data']['data']);
+                setProducts(ret['data']['data']);
+                setProgress(40);
+                gettopstocks().then(ret=>{
+                  if (ret['data']['result'] === 'ok'){
+                    console.log("topproducts", ret['data']['data']);
+                    setStocks(ret['data']['data']);
+                    setWeekStocks(ret['data']['weekdata']);
+                    setProgress(60);
+                    getshortlong().then(ret=>{
+                      if (ret['data']['result'] === 'ok'){
+                        console.log("shortorlong", ret['data']['data']);
+                        setShortorlong(ret['data']['data']);
+                        setWeekShortorlong(ret['data']['weekdata']);
+                        setProgress(80);
+                        gettopstocksforshortlong().then(ret=>{
+                          if (ret['data']['result'] === 'ok'){
+                            setProgress(100);
+                            console.log("shortorlong", ret['data']['data']);
+                            setShortdata(ret['data']['shortdata']);
+                            setWeekShortdata(ret['data']['weekshortdata']);
+                            setLongdata(ret['data']['longdata']);
+                            setWeekLongdata(ret['data']['weeklongdata']);
+                            setOpenText("none");
+                          }
+                        });
+                                  }
+                    });
+                          }
+                });
+                  }
+            });
+          }
+        });
+      }, intervaltime)
+    }
+  },[intervaltime]);
 
   React.useEffect(()=>{
     var jwt = require('jwt-simple');
@@ -174,41 +240,53 @@ const ProductList = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            md={6}
-            xl={3}
+            lg={2}
+            md={4}
+            xl={2}
             xs={12}
           >
             <EarningReportStocks products={products}/>
           </Grid>
           <Grid
             item
-            lg={3}
-            md={6}
-            xl={3}
-            xs={12}
+            lg={2}
+            md={4}
+            xl={2}
+            xs={6}
+            style={{paddingRight:"0px"}}
           >
-            <TopStocks stocks={stocks}/>
+            <TopStocks stocks={stocks} titleU={"Today Top Stocks"} />
           </Grid>
           <Grid
             item
-            lg={9}
+            lg={2}
+            md={4}
+            xl={2}
+            xs={6}
+            style={{paddingLeft:"0px"}}
+          >
+            <TopStocks stocks={weekstocks} titleU={"This Week Top Stocks"} />
+          </Grid>
+          <Grid
+            item
+            lg={8}
             md={12}
-            xl={9}
+            xl={8}
             xs={12}
           >{
             followerslist.map(users=>{
               if (followerslist.length  <=5 )
               {
+                count = count + 1;
                 return (
-                  <Watchlist name={users.username} email={users.email} avatar={users.avatar} />
+                  <Watchlist key={count} name={users.username} email={users.email} avatar={users.avatar} timeU={Date.now()} />
                 )  
               }
               else{
                 if (count < 5){
                   count = count + 1;
                   return (
-                    <Watchlist name={users.username} email={users.email} avatar={users.avatar} myemail={userEmail}/>
+                    <Watchlist key={count} name={users.username} email={users.email} avatar={users.avatar} myemail={userEmail} timeU={Date.now()} />
                   )    
                 }
               }
@@ -216,13 +294,15 @@ const ProductList = props => {
           }
           </Grid>
           <Grid
-            item
-            lg={3}
-            md={12}
-            xl={3}
-            xs={12}
+            item={true}
+            lg={2}
+            md={6}
+            xl={2}
+            xs={6}
+            style={{paddingRight:"0px"}}
           >
             <Grid
+              item
               lg={12}
               md={12}
               xl={12}
@@ -232,9 +312,33 @@ const ProductList = props => {
               justify="space-between"
               alignItems="flex-end"
             >
-              <DirectionofTraders shortorlong={shortorlong}/>
-              <TopStocksforShort shortdata={shortdata}/>
-              <TopStocksforLong longdata={longdata}/>
+              <DirectionofTraders shortorlong={shortorlong} titleU={"Today Direction Of Traders"}/>
+              <TopStocksforShort shortdata={shortdata} titleU={"Today Top Stocks For Short"}/>
+              <TopStocksforLong longdata={longdata} titleU={"Today Top Stocks For Long"}/>
+            </Grid>
+          </Grid>
+          <Grid
+            item
+            lg={2}
+            md={6}
+            xl={2}
+            xs={6}
+            style={{paddingLeft:"0px"}}
+          >
+            <Grid
+              item
+              lg={12}
+              md={12}
+              xl={12}
+              xs={12}
+              container
+              direction="column"
+              justify="space-between"
+              alignItems="flex-end"
+            >
+              <DirectionofTraders shortorlong={weekshortorlong} titleU={"Week Direction Of Traders"}/>
+              <TopStocksforShort shortdata={weekshortdata} titleU={"Week Top Stocks For Short"}/>
+              <TopStocksforLong longdata={weeklongdata} titleU={"Week Top Stocks For Long"}/>
             </Grid>
           </Grid>
         </Grid>

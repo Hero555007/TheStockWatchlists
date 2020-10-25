@@ -88,6 +88,8 @@ class TradingChartPanel extends Component{
   componentDidMount()
   {
     this._isMounted = true;
+    // console.log("historicalpricedata", getData(this.props.symbol,"1d"));
+    // this.setState({data : getData(this.props.symbol,"1d")});
     getData(this.props.symbol,"1d").then(data => {
       this.setState({ data: data });
     })
@@ -108,6 +110,7 @@ class TradingChartPanel extends Component{
     if (nextProps.intervalname !== this.props.intervalname) {
       console.log('nextProps', nextProps.intervalname);
       getData(nextProps.symbol, nextProps.intervalname).then(data => {
+        console.log("componentwillreceiveprops");
         this.setState({ data: data });
       });
     }

@@ -22,7 +22,8 @@ const useStyles = makeStyles(() => ({
   },
   content: {
     padding: 0,
-    maxHeight:'350px',
+    maxHeight:'300px',
+    minHeight:'300px',
     overflowY:'scroll'
   },
   image: {
@@ -35,7 +36,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const TopStocksforLong = props => {
-  const { className,longdata, ...rest } = props;
+  const { className,longdata, titleU, ...rest } = props;
 
   const classes = useStyles();
 
@@ -48,7 +49,7 @@ const TopStocksforLong = props => {
     >
       <CardHeader
         subtitle={`${longdata.length} in total`}
-        title="Top Stocks for Long"
+        title={titleU}
       />
       <Divider />
       <CardContent className={classes.content}>
@@ -58,7 +59,7 @@ const TopStocksforLong = props => {
               divider={i < longdata.length - 1}
               key={product.id}
             >
-              <ListItemAvatar style={{marginLeft:"50px"}}>
+              <ListItemAvatar style={{marginLeft:"10px"}}>
                 <img
                   alt="Product"
                   className={classes.image}
@@ -68,7 +69,7 @@ const TopStocksforLong = props => {
               <ListItemText
                 primary={product.name}
                 secondary={product.number}
-                style={{marginLeft:"30px"}}
+                style={{marginLeft:"10px"}}
               />
             </ListItem>
           ))}

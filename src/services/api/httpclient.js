@@ -57,6 +57,39 @@ const getlogedusersnumberPath = 'api/getlogedusersnumber'
 const gettotalusersnumberPath = 'api/gettotalusersnumber'
 const getstockpriceintervaltimePath = 'api/getstockpriceintervaltime'
 const logoutPath = 'api/logout'
+const gethistoricalpricePath = 'api/gethistoricalprice'
+const getsymbollistsPath = 'api/getsymbollists'
+const saveroworderPath = 'api/saveroworder'
+
+export function saveroworder(data){
+    return new Promise((resolve,reject) =>
+        post(saveroworderPath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function getsymbollists(){
+    return new Promise((resolve,reject) =>
+        get(getsymbollistsPath, null, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
+
+export function gethistoricalprice(data){
+    return new Promise((resolve,reject) =>
+        post(gethistoricalpricePath, data, false).then((resp) => {
+            resolve(resp);       
+        }).catch(err => {
+            reject(err); // not provide internal server error
+        })
+    );
+}
 
 export function logout(data){
     return new Promise((resolve,reject) =>

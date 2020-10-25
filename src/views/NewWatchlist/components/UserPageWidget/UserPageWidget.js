@@ -169,7 +169,7 @@ const UserPageWidget = (props) => {
   
     const initialList = [];
     const data = [];
-    const [time, setTimeInterval] = React.useState(1000 * 60 * 5); 
+    const [time, setTimeInterval] = React.useState(0); 
     const [value, setValue] = React.useState("");
     const [sectorvalue, setSectorValue] = React.useState("");
     const [symbol, setSymbol] = React.useState(initialList);
@@ -203,8 +203,15 @@ const UserPageWidget = (props) => {
         }
       })
     },[])
+
     React.useEffect(()=>{
-      symbol.map(item =>{
+      (symbol || []).map(item =>{
+
+        setTimerId((prevTimerId) => {
+          clearInterval(prevTimerId);
+          return timerId;
+        });
+  
         let payload = {
           "symbol": item.symbol,
           "symbolname" : item.symbolname
@@ -212,23 +219,31 @@ const UserPageWidget = (props) => {
         
         console.log('payload1', payload);
         getcurrentstockprice(payload).then( ret=>{
-          console.log(ret);
-          // if (ret['data']['result'] == "failed" || state == undefined)
+          console.log("payload1ret", ret);
+          // if (ret['data']['result'] === "failed" || state === undefined)
           // {
           //   return;
           // }
-          setState(prevState => prevState.map(item_ => {
-            console.log("item_",item_);
+          setState(prevState => (prevState || []).map(item_ => {
+            console.log("item_",item_, ret);
             const item = {...item_}
-            if (item.symbolname == ret.data.symbolname) {
-              if (item.currentstockprice == 0){
+            if (item.symbolname === ret.data.symbolname) {
+              item.currentstockprice = ret.data.price;
+              if (item.currentstockprice === 0){
                 item.currentchange = 0;                
               }
               else{
                 item.currentchange =ret.data.pricechange;
               }
-              item.currentstockprice = ret.data.price;
               item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
+              console.log('itementryprice', item.entryprice,typeof(item.entryprice), "float", parseFloat(item.entryprice));
+              if (item.entryprice != "")
+              {
+                item.entrychange = Math.round((item.currentstockprice - (parseFloat(item.entryprice))) / parseFloat(item.entryprice) * 100 * 1000) /1000;
+              }
+              else{
+                item.entrychange = "";
+              }
               if (item.alertprice != null && item.alertprice != "0")
               {
                 console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
@@ -267,6 +282,7 @@ const UserPageWidget = (props) => {
                   })
                 }
               }
+              console.log("endearninglist", earningList);
               return item;
             } else {
               return item;
@@ -276,82 +292,88 @@ const UserPageWidget = (props) => {
           alert(err.error);
         });       
       });
-      const timerID = setInterval(() => {
-        symbol.map(item =>{
-          let payload = {
-            "symbol": item,
-          }
-          
-            console.log('payload', payload);
-            getcurrentstockprice(payload).then( ret=>{
-              console.log("ret",ret);
-              // if (ret['data']['result'] == "failed" || state == undefined)
-              // {
-              //   console.log("failed");
-              //   return;
-              // }
-              setState(prevState => prevState.map(item_ => {
-                console.log("item_", item_);
-                const item = {...item_}
-                if (item.symbol == ret.data.symbol) {
-                  item.currentchange =ret.data.pricechange;
-                  item.currentstockprice = ret.data.price;
-                  item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
-                  if (item.alertprice != null && item.alertprice != "0")
-                  {
-                    console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
-                    if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
-                      console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
-                      setAlert("block", item.symbol);
-                      setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
-                      console.log("setearninglist")
-                      setEarningList(()=>{
-                        const _earninglist = earningList || [];
-                        let flag = false;
-                        (earningList||[]).map(items=>{
-                          if (items.symbolname == item.symbolname)
-                          {
-                            flag = true;
-                          }
-                        })
-                        if (flag == false){
-                          _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
-                        }
-                        return _earninglist;
-                      })
-                        // (earningList||[]).push(item.symbol);
-                      // console.log("earningList",earningList);  
+      if (time != 0)
+      {
+        const timerId = setInterval(() => {
+          (symbol || []).map(item =>{
+            let payload = {
+                "symbol": item.symbol,
+                "symbolname" : item.symbolname
+              }
+            
+              console.log('payload', payload);
+              getcurrentstockprice(payload).then( ret=>{
+                console.log("ret",ret);
+                // if (ret['data']['result'] === "failed" || state === undefined)
+                // {
+                //   console.log("failed");
+                //   return;
+                // }
+                setState(prevState => (prevState || []).map(item_ => {
+                  console.log("item_", item_);
+                  const item = {...item_}
+                  if (item.symbolname === ret.data.symbolname) {
+                    item.currentchange =ret.data.pricechange;
+                    item.currentstockprice = ret.data.price;
+                    item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
+                    if (item.entryprice != "")
+                    {
+                      item.entrychange = Math.round((item.currentstockprice - (parseFloat(item.entryprice))) / parseFloat(item.entryprice) * 100 * 1000) /1000;
                     }
-                    else{
-                      setEarningList(()=>{
-                        const _earninglist = [];
-                        (earningList|| []).map(items=>{
-                          if (items.symbolname != item.symbolname){
-                            _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
+                    if (item.alertprice != null && item.alertprice != "0")
+                    {
+                      if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                        setAlert("block", item.symbol);
+                        setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                        setEarningList(()=>{
+                          const _earninglist = earningList || [];
+                          let flag = false;
+                          (earningList||[]).map(items=>{
+                            if (items.symbolname == item.symbolname)
+                            {
+                              flag = true;
+                            }
+                          })
+                          if (flag == false){
+                            _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
                           }
+                          return _earninglist;
                         })
-                        return _earninglist;
-                      })
-                    }    
+                          // (earningList||[]).push(item.symbol);
+                        // console.log("earningList",earningList);  
+                      }
+                      else{
+                        setEarningList(()=>{
+                          const _earninglist = [];
+                          (earningList|| []).map(items=>{
+                            if (items.symbolname != item.symbolname){
+                              _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
+                            }
+                          })
+                          return _earninglist;
+                        })
+                      }    
+                    }
+                    console.log("endearninglist", earningList);
+                    return item;
+                  } else {
+                    return item;
                   }
-                  return item;
-                } else {
-                  return item;
-                }
-              }))  
-          }, err => {
-            alert(err.error);
-          });       
-        });
-      }, time);
-      setTimerId((prevTimerId) => {
-        clearInterval(prevTimerId);
-        return timerID;
-      });
+                }))  
+            }, err => {
+              alert(err.error);
+            });       
+          });
+        }, time);
+      }
+      // setTimerId((prevTimerId) => {
+      //   clearInterval(prevTimerId);
+      //   return timerId;
+      // });
       // setStatus(()=>{
       //   return !status;
       // });
-    },[symbol])  
+    },[symbol, status, time])
     React.useEffect(() => {
       if (!userName.length || !userEmail.length) return;
       var jwt = require('jwt-simple');
@@ -570,7 +592,19 @@ const UserPageWidget = (props) => {
         },
         { title: '52\nWeeks\nHigh', field: 'yearhigh',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['yearhigh']},
         { title: 'Current\nStock\nPrice', field: 'currentstockprice',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['currentprice']},
-        { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200},
+        { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200,
+          cellStyle: (index, rowdata) => {
+            if (index > 0) {
+              return ({color:"green"});
+            }
+            if (index == 0){
+              return ({color:"black"});
+            }
+            else{
+              return ({color:"red"});
+            }
+          }  
+        },
         { title: 'Entry\nPrice', field: 'entryprice', type: 'numeric' , searchable:false,hidden:!columndata['entryprice']},
         { title: 'Change', field: 'entrychange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['entrychange']},
         { title: 'Stop\nLoss', field: 'stoploss', type: 'numeric' , searchable:false,hidden:!columndata['stoploss']},

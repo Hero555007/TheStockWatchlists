@@ -27,7 +27,6 @@ import { store } from 'react-notifications-component';
 import 'react-notifications-component/dist/theme.css';
 import 'animate.css';
 
-
 const schema = {
   email: {
     presence: { allowEmpty: false, message: 'is required' },
@@ -190,6 +189,12 @@ const SignIn = props => {
     history.goBack();
   };
 
+  useEffect(()=>{
+    if (localStorage.key("useremail") != null) {
+      history.push('/dashboard')
+    }
+  },[])
+
   const handleChange = event => {
     event.persist();
 
@@ -214,6 +219,7 @@ const SignIn = props => {
   }
 
   const handleSignIn = event => {
+    var fs = require('browserify-fs');
     event.preventDefault();
     var jwt = require('jwt-simple');
     let secret = "Hero-Hazan-Trading-Watchlist";
@@ -415,10 +421,10 @@ const SignIn = props => {
                   <form onSubmit={onSubmit} style={{paddingTop:"10px"}}>
                     <ReCAPTCHA
                       ref={recaptchaRef}
-                      sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV" //localhost
-                      // sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_" //prodserver
+                      // sitekey="6LeLGb4ZAAAAAMdUIt6RvP1Zx0ubcWviNEivyOlV" //localhost
+                      sitekey="6Lfweb4ZAAAAALDSvvarbMFA-iSUbJKzKjOoiFM_" //prodserver
                       // sitekey="6LcjOMMZAAAAAGH8z14MefI5__CY8DHNz-ZZDuZd" //devserver
-                    onChange={recaptchaverified}
+                      onChange={recaptchaverified}
                       onExpired={recaptchatexpired}
                       hl="en"
                     />

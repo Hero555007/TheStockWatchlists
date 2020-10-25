@@ -176,6 +176,7 @@ const MostFollowedUsers = props => {
               <TableBody>
                 {(FollowersList || []).map(user => (
                   <TableRow
+                    key = {user.username}
                     hover
                   >
                     <TableCell>

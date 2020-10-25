@@ -62,7 +62,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const Watchlist = props => {
-  const { className, name, email, avatar,setWatchuserInfo,useremail,  ...rest } = props;
+  const { className, name, email, avatar,setWatchuserInfo,useremail, timeU,  ...rest } = props;
 
   const history = useHistory();
   const classes = useStyles();
@@ -164,7 +164,7 @@ const Watchlist = props => {
       // setDatas(ret['data']['data']);
     })
     setFisrtC(name.substring(0,1).toUpperCase());
-  },[name, email]);
+  },[name, email, timeU]);
 
   const converDate = (date)=>{
     return date.split('T')[0];
@@ -239,14 +239,15 @@ const Watchlist = props => {
               <TableBody>
                 {(datas||[]).map(data => (
                   <TableRow
+                    key={data.symbolname}
                     hover
                   >
                     <TableCell>{data.symbol}</TableCell>
                     <TableCell>{data.currentstockprice}</TableCell>
                     <TableCell>{data.currentchange}</TableCell>
                     <TableCell>{data.yearhigh}</TableCell>
-                    <TableCell>{data.tradetiming}</TableCell>
-                    <TableCell>{data.shortorlong}</TableCell>
+                    <TableCell>{data.tradetimingstring}</TableCell>
+                    <TableCell>{data.shortorlongstring}</TableCell>
                     <TableCell>{converDate(data.earningdate)}</TableCell>
                   </TableRow>
                 ))}

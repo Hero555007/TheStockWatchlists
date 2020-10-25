@@ -5,16 +5,19 @@ import { makeStyles } from '@material-ui/styles';
 import { Card, CardContent, Grid, Typography, Avatar } from '@material-ui/core';
 import ArrowDownwardIcon from '@material-ui/icons/ArrowDownward';
 import ArrowUpwardIcon from '@material-ui/icons/ArrowUpward'
+import VerticalAlignCenterIcon from '@material-ui/icons/VerticalAlignCenter'
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 const useStyles = makeStyles(theme => ({
   root: {
     height: '100%',
     width:'100%',
+    maxHeight:"200px",
+    minHeight:"200px",
     },
   content: {
     alignItems: 'center',
-    display: 'flex'
+    display: 'flex',
   },
   title: {
     fontWeight: 700
@@ -43,17 +46,20 @@ const useStyles = makeStyles(theme => ({
 }));
 
 const DirectionofTraders = props => {
-  const { className, shortorlong, ...rest } = props;
+  const { className, shortorlong, titleU, ...rest } = props;
 
   const classes = useStyles();
   const getIcon = useCallback(()=>{
     console.log('aa');
     if (shortorlong === "Short")
     {
-      return <ArrowDownwardIcon className={classes.differenceIcon} />
+      return <ArrowDownwardIcon style={{color: "blue"}} className={classes.differenceIcon} />
     }
-    else{
-      return <ArrowUpwardIcon className={classes.differenceIcon} />
+    if (shortorlong === "Long"){
+      return <ArrowUpwardIcon style={{color: "blue"}} className={classes.differenceIcon} />
+    }
+    else {
+      return <VerticalAlignCenterIcon style={{color: "blue"}} className={classes.differenceIcon} />
     }
   })
 
@@ -74,7 +80,7 @@ const DirectionofTraders = props => {
               gutterBottom
               variant="body2"
             >
-              Direction of Traders
+              {titleU}
             </Typography>
             <Typography variant="h3">{shortorlong}</Typography>
           </Grid>

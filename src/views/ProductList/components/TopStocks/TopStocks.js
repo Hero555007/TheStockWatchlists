@@ -34,7 +34,7 @@ const useStyles = makeStyles(() => ({
 }));
 
 const TopStocks = props => {
-  const { className, stocks, ...rest } = props;
+  const { className, stocks, titleU, ...rest } = props;
 
   const classes = useStyles();
 
@@ -47,7 +47,7 @@ const TopStocks = props => {
     >
       <CardHeader
         subtitle={`${stocks.length} in total`}
-        title="Top Stocks of our site"
+        title={titleU}
       />
       <Divider />
       <CardContent className={classes.content}>
@@ -57,7 +57,7 @@ const TopStocks = props => {
               divider={i < stocks.length - 1}
               key={product.id}
             >
-              <ListItemAvatar style={{marginLeft:"50px"}}>
+              <ListItemAvatar style={{marginLeft:"10px"}}>
                 <img
                   alt="Product"
                   className={classes.image}
@@ -67,7 +67,7 @@ const TopStocks = props => {
               <ListItemText
                 primary={product.name}
                 secondary={product.number}
-                style={{marginLeft:"30px"}}
+                style={{marginLeft:"10px"}}
               />
             </ListItem>
           ))}

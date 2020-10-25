@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import MaterialTable from 'material-table';
+import {MTableBodyRow} from 'material-table';
 import { TradingViewWidget } from '../../components'
 import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
@@ -10,7 +11,7 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import { useTheme, makeStyles } from '@material-ui/core/styles';
 import { VariableSizeList } from 'react-window';
 import { Typography } from '@material-ui/core';
-import {getstockpriceintervaltime, saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, getcurrentstockprice, getwatchlisttemplate, validwatchlist} from '../../../../services/api/httpclient';
+import {getstockpriceintervaltime, saveWatchlist, deleteWatchlist,getWatchlist,getsector, updateWatchlist, getcurrentstockprice, getwatchlisttemplate, validwatchlist, getsymbollists, saveroworder} from '../../../../services/api/httpclient';
 import { connect } from "react-redux";
 import { setSymbolName } from '../../../../redux/actions';
 import { changeDashboardType } from '../../../../redux/actions';
@@ -31,11 +32,11 @@ function mapDispatchToProps(dispatch) {
   };
 }
 
-function refreshPage() {
-  window.location.reload(false);
-}
+// function refreshPage() {
+//   window.location.reload(false);
+// }
 
-const options =sector;
+var options;
 const LISTBOX_PADDING = 8; // px
 
 function renderRow(props) {
@@ -146,14 +147,22 @@ const UserPageWidget = (props) => {
 
     React.useEffect(()=>{
       if (dense == true){
-        console.log("densestring-dense")
         setDensestring("dense");
       }
       else{
-        console.log("densestring-default")
         setDensestring("default");
       }
     },[dense])
+
+    React.useEffect(()=>{
+      getsymbollists().then(ret=>{
+        if (ret['data']['result'] == 'ok') {
+          console.log("symbolList", ret['data']['data']);
+          options = ret['data']['data'];
+          console.log("symbolList", options);
+        }
+      })
+    },[]);
 
     React.useEffect(()=>{
       if (username === "")
@@ -181,7 +190,7 @@ const UserPageWidget = (props) => {
   
     const initialList = [];
     const data = [];
-    const [time, setTimeInterval] = React.useState(1000 * 60 * 5); 
+    const [time, setTimeInterval] = React.useState(0); 
     //const time = 1000 * 30;
     const [value, setValue] = React.useState("");
     const [sectorvalue, setSectorValue] = React.useState("");
@@ -201,7 +210,6 @@ const UserPageWidget = (props) => {
     const [size, setSize] = React.useState(5);
 
     React.useEffect(()=>{
-      console.log("localsotrageSize");
       if (localStorage.key("TableSize") != null)
       {
         console.log("localsotrageSize", localStorage.getItem("TableSize"));
@@ -215,12 +223,19 @@ const UserPageWidget = (props) => {
       getstockpriceintervaltime().then(ret=>{
         if (ret['data']['result'] == 'ok'){
           setTimeInterval(parseInt(ret['data']['data']) * 1000 * 60);
+          // setTimeInterval(1000 * 60 * 0.5);
         }
       })
     },[])
 
     React.useEffect(()=>{
       (symbol || []).map(item =>{
+
+        setTimerId((prevTimerId) => {
+          clearInterval(prevTimerId);
+          return timerId;
+        });
+  
         let payload = {
           "symbol": item.symbol,
           "symbolname" : item.symbolname
@@ -245,6 +260,11 @@ const UserPageWidget = (props) => {
                 item.currentchange =ret.data.pricechange;
               }
               item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
+              console.log('itementryprice', item.entryprice,typeof(item.entryprice), "float", parseFloat(item.entryprice));
+              if (item.entryprice != "")
+              {
+                item.entrychange = Math.round((item.currentstockprice - (parseFloat(item.entryprice))) / parseFloat(item.entryprice) * 100 * 1000) /1000;
+              }
               if (item.alertprice != null && item.alertprice != "0")
               {
                 console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
@@ -293,84 +313,88 @@ const UserPageWidget = (props) => {
           alert(err.error);
         });       
       });
-      const timerId = setInterval(() => {
-        (symbol || []).map(item =>{
-          let payload = {
-              "symbol": item.symbol,
-              "symbolname" : item.symbolname
-            }
-          
-            console.log('payload', payload);
-            getcurrentstockprice(payload).then( ret=>{
-              console.log("ret",ret);
-              // if (ret['data']['result'] === "failed" || state === undefined)
-              // {
-              //   console.log("failed");
-              //   return;
-              // }
-              setState(prevState => (prevState || []).map(item_ => {
-                console.log("item_", item_);
-                const item = {...item_}
-                if (item.symbolname === ret.data.symbolname) {
-                  item.currentchange =ret.data.pricechange;
-                  item.currentstockprice = ret.data.price;
-                  item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
-                  if (item.alertprice != null && item.alertprice != "0")
-                  {
-                    console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
-                    if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
-                      console.log("foralert",parseFloat(item.currentstockprice),parseFloat(item.alertprice),(parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice))
-                      setAlert("block", item.symbol);
-                      setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
-                      console.log("setearninglist")
-                      setEarningList(()=>{
-                        const _earninglist = earningList || [];
-                        let flag = false;
-                        (earningList||[]).map(items=>{
-                          if (items.symbolname == item.symbolname)
-                          {
-                            flag = true;
-                          }
-                        })
-                        if (flag == false){
-                          _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
-                        }
-                        return _earninglist;
-                      })
-                        // (earningList||[]).push(item.symbol);
-                      // console.log("earningList",earningList);  
+      if (time != 0)
+      {
+        const timerId = setInterval(() => {
+          (symbol || []).map(item =>{
+            let payload = {
+                "symbol": item.symbol,
+                "symbolname" : item.symbolname
+              }
+            
+              console.log('payload', payload);
+              getcurrentstockprice(payload).then( ret=>{
+                console.log("ret",ret);
+                // if (ret['data']['result'] === "failed" || state === undefined)
+                // {
+                //   console.log("failed");
+                //   return;
+                // }
+                setState(prevState => (prevState || []).map(item_ => {
+                  console.log("item_", item_);
+                  const item = {...item_}
+                  if (item.symbolname === ret.data.symbolname) {
+                    item.currentchange =ret.data.pricechange;
+                    item.currentstockprice = ret.data.price;
+                    item.addedpricechange = Math.round((item.currentstockprice - (parseFloat(item.addedprice))) / parseFloat(item.addedprice) * 100 * 1000) /1000;
+                    if (item.entryprice != "")
+                    {
+                      item.entrychange = Math.round((item.currentstockprice - (parseFloat(item.entryprice))) / parseFloat(item.entryprice) * 100 * 1000) /1000;
                     }
-                    else{
-                      setEarningList(()=>{
-                        const _earninglist = [];
-                        (earningList|| []).map(items=>{
-                          if (items.symbolname != item.symbolname){
-                            _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
+                    if (item.alertprice != null && item.alertprice != "0")
+                    {
+                      if (Math.abs((parseFloat(item.currentstockprice) - parseFloat(item.alertprice))*100/parseFloat(item.alertprice)) < parseFloat(item.alertpricechange)){
+                        setAlert("block", item.symbol);
+                        setNotification(userName, "https://financialmodelingprep.com/image-stock/"+item.symbol+".jpg",new Date().toISOString().substring(0, 10), "Alert!!! - " + item.symbol);
+                        setEarningList(()=>{
+                          const _earninglist = earningList || [];
+                          let flag = false;
+                          (earningList||[]).map(items=>{
+                            if (items.symbolname == item.symbolname)
+                            {
+                              flag = true;
+                            }
+                          })
+                          if (flag == false){
+                            _earninglist.push({"symbol":item.symbol,"symbolname":item.symbolname});
                           }
+                          return _earninglist;
                         })
-                        return _earninglist;
-                      })
-                    }    
+                          // (earningList||[]).push(item.symbol);
+                        // console.log("earningList",earningList);  
+                      }
+                      else{
+                        setEarningList(()=>{
+                          const _earninglist = [];
+                          (earningList|| []).map(items=>{
+                            if (items.symbolname != item.symbolname){
+                              _earninglist.push({"symbol":items.symbol, "symbolname":items.symbolname});
+                            }
+                          })
+                          return _earninglist;
+                        })
+                      }    
+                    }
+                    console.log("endearninglist", earningList);
+                    return item;
+                  } else {
+                    return item;
                   }
-                  console.log("endearninglist", earningList);
-                  return item;
-                } else {
-                  return item;
-                }
-              }))  
-          }, err => {
-            alert(err.error);
-          });       
-        });
-      }, time);
-      setTimerId((prevTimerId) => {
-        clearInterval(prevTimerId);
-        return timerId;
-      });
+                }))  
+            }, err => {
+              alert(err.error);
+            });       
+          });
+        }, time);
+      }
+      // setTimerId((prevTimerId) => {
+      //   clearInterval(prevTimerId);
+      //   return timerId;
+      // });
       // setStatus(()=>{
       //   return !status;
       // });
-    },[symbol])  
+    },[symbol, status, time])
 
       const getColumns = useCallback(() => {
           return [
@@ -460,9 +484,24 @@ const UserPageWidget = (props) => {
             { title: '52\nWeeks\nHigh', field: 'yearhigh',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['yearhigh']},
             { title: 'SymbolName', field: 'symbolname',editable: 'never', searchable:false ,hidden:true},
             { title: 'Current\nStock\nPrice', field: 'currentstockprice',editable: 'never', type: 'numeric', searchable:false ,hidden:!columndata['currentprice']},
-            { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200},
+            { title: 'Change', field: 'currentchange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['currentchange'], width:200,
+              cellStyle: (index, rowdata) => {
+                if (index > 0) {
+                  return ({color:"green"});
+                }
+                if (index == 0){
+                  return ({color:"black"});
+                }
+                else{
+                  return ({color:"red"});
+                }
+              }
+            },
             { title: 'Entry\nPrice', field: 'entryprice', type: 'numeric' , searchable:false,hidden:!columndata['entryprice']},
-            { title: 'Change', field: 'entrychange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['entrychange']},
+            { title: 'Change', field: 'entrychange', type: 'numeric',editable: 'never', searchable:false,hidden:!columndata['entrychange'],
+              cellStyle: (index, rowdata) => {
+              }
+            },
             { title: 'Stop\nLoss', field: 'stoploss', type: 'numeric' , searchable:false,hidden:!columndata['stoploss']},
             { title: 'Change', field: 'stopchange', type: 'numeric' , editable: 'never',searchable:false,hidden:!columndata['stoplosschange']},
             { title: 'Exit\nPrice', field: 'exitprice', type: 'numeric' , searchable:false,hidden:!columndata['exitprice']},
@@ -505,7 +544,7 @@ const UserPageWidget = (props) => {
             { title: 'Reward\nInR', field: 'rewardprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['rewardinR']},
             { title: 'Initial\nPrice', field: 'addedprice', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedprice']},
             { title: 'Added\nChange', field: 'addedpricechange', type: 'numeric',  editable: 'never', searchable:false ,hidden:!columndata['addedpricechange']},
-            { title: 'Date Added', field: 'dateadded', type: 'date',  editable: 'never', searchable:false ,hidden:!columndata['dateadded'], defaultSort:'desc'},
+            { title: 'Date Added', field: 'dateadded', type: 'date',  editable: 'never', searchable:false ,hidden:!columndata['dateadded']},
             { title: 'Comment', field: 'comment', type:'string', hidden:!columndata['comment'],
               editComponent: props => (
                 <TextField
@@ -529,7 +568,7 @@ const UserPageWidget = (props) => {
               hidden:!columndata['tradescore'],
             },
           ];
-      }, [columndata, earningList])
+      }, [columndata, earningList, alertList])
 
       React.useEffect(() => {
         if (!userName.length || !userEmail.length) return;
@@ -600,6 +639,51 @@ const UserPageWidget = (props) => {
 
         });
       }, [userName, userEmail, status])
+
+      const DrageState = {
+        row: -1,
+        dropIndex: -1 // drag target
+      };
+
+      //Reorder the table row
+      const offsetIndex = (from, to, arr = []) => {
+        if (from < to) {
+          let start = arr.slice(0, from),
+            between = arr.slice(from + 1, to + 1),
+            end = arr.slice(to + 1);
+          return [...start, ...between, arr[from], ...end];
+        }
+        if (from > to) {
+          let start = arr.slice(0, to),
+            between = arr.slice(to, from),
+            end = arr.slice(from + 1);
+          return [...start, arr[from], ...between, ...end];
+        }
+        return arr;
+      }
+      const reOrderRow = (from, to) =>{
+      let newtableData = offsetIndex(from, to, state);
+      console.log("newtabledata", newtableData, from, to);
+      //Update react state
+      setState(newtableData);
+      let payload = {
+        "useremail" : userEmail,
+        "from" : from,
+        "to" : to,
+        "fromsymbolname" : newtableData[to]['symbolname']
+      }
+      let token = jwt.encode(payload, secret);
+      payload = {"token": token};
+      saveroworder(payload).then(ret=>{
+        if (ret['data']['result'] == 'ok') {
+          console.log("rowordersavesuccessful");
+        }
+        else {
+          console.log("rowordersavefailed");
+        }
+      })
+
+      }
       
     return (
             <MaterialTable 
@@ -608,6 +692,34 @@ const UserPageWidget = (props) => {
             //data={getListData()}  
             data={state}
             isLoading={loading}
+            components={{
+              Row: props => (
+                  <MTableBodyRow {...props}
+                      draggable="true"
+                      onDragStart={(e) => {
+                          console.log('onDragStart', props);
+                          DrageState.row = props.data.tableData.id
+                          console.log('onDragStart', DrageState);
+                          console.log('onDragStartProps', props);
+                      }}
+                      onDragEnter={e => {
+                          e.preventDefault();
+                          console.log(`onDragEnter`);
+                          if( props.data.tableData.id !== DrageState.row){
+                              DrageState.dropIndex = props.data.tableData.id ;
+                          }                                                  
+                      }}
+                      onDragEnd={(e) => {
+                          console.log(`onDragEnd`, DrageState.row, DrageState.dropIndex);
+                          if(DrageState.dropIndex !== -1){
+                              reOrderRow(DrageState.row, DrageState.dropIndex)
+                          }
+                          DrageState.row = -1;
+                          DrageState.dropIndex = -1;
+                      }}
+                  />
+              )
+          }} // components
             options={{
               rowStyle:{
                 padding:'1px'
@@ -707,156 +819,167 @@ const UserPageWidget = (props) => {
             editable={{
                     onRowAdd: (newData) =>
                     new Promise((resolve) => {
-                      var bufsymbol;
-                      var jwt = require('jwt-simple');
-                      let secret = "Hero-Hazan-Trading-Watchlist";  
-                        resolve();
-                        setFirst(false);
-                        setState((prevState) => {
-                          setLoading(true);
-                            console.log("prevdata", prevState);
-                            const datas = [...prevState];
-                            if (newData['entryprice']===undefined)
-                            {
-                              newData['entryprice'] = 0;
-                            }
-                            if (newData['entrychange']===undefined)
-                            {
-                              newData['entrychange'] = 0;
-                            }
-                            if (newData['stoploss']===undefined)
-                            {
-                              newData['stoploss'] = 0;
-                            }
-                            if (newData['exitprice']===undefined)
-                            {
-                              newData['exitprice'] = 0;
-                            }
-                            if (newData['currentstockprice']===undefined)
-                            {
-                              newData['currentstockprice'] = 0;
-                            }
-                            if (newData['currentchange']===undefined)
-                            {
-                              newData['currentchange'] = 0;
-                            }
-                            if (newData['addedprice']===undefined)
-                            {
-                              newData['addedprice'] = 0;
-                            }
-                            if (newData['comment']===undefined)
-                            {
-                              newData['comment'] = "";
-                            }
-                            if (newData['earningdate'] === undefined)
-                            {
-                              newData['earningdate'] = "";
-                            }
-                            if (newData['alertpricechange'] === undefined)
-                            {
-                              newData['alertpricechange'] = 5.0;
-                            }
-                            if (newData['exitprice'] != 0){
-                              exitList.push({"symbol":newData['symbol'],"symbolname":newData['symbolname']});
-                            }
-                            let today = new Date();
-                            let dd = String(today.getDate()).padStart(2, '0');
-                            let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-                            let yyyy = today.getFullYear();
-
-                            today = mm + '/' + dd + '/' + yyyy;
-                            newData['dateadded'] = today;
-                            if (newData['exitprice'] != 0 && newData['stoploss'] !=0 && newData['entryprice']!=0){
-                              newData['rewardprice'] =(parseFloat(newData['exitprice']) - parseFloat(newData['entryprice'])) / (parseFloat(newData['entryprice']) - parseFloat(newData['stoploss'])) ;
-                              newData['rewardprice'] = newData['rewardprice'].toString().substring(0,4);
-                            }
-                            else{
-                              newData['rewardprice'] = 0;
-                            }
-                            // while(sectorvalue === "")
-                            // {
-                            //   return;
-                            // }
-                            newData['sector'] = sectorvalue;
-                            console.log("new data", newData);
-                            if (newData['symbol'] === undefined)
-                            {
-                              alert("No symbol. Please select the symbol...");
-                            }
-                            else{
-                              let payload2 = {
-                                "username": userName,
-                                "useremail": userEmail,
-                                "userrole": userRole,
+                        var bufsymbol;
+                        var jwt = require('jwt-simple');
+                        let secret = "Hero-Hazan-Trading-Watchlist";  
+                          resolve();
+                          setFirst(false);
+                          var symbolnamebuf;
+                          var bufsymbol;
+                          // setState((prevState) => {
+                            setLoading(true);
+                              // console.log("prevdata", prevState);
+                              // const datas = [...prevState];
+                              if (newData['entryprice']===undefined)
+                              {
+                                newData['entryprice'] = 0;
                               }
-                              let token2 = jwt.encode(payload2, secret);
-                              payload2 = {"token": token2};      
-                              validwatchlist(payload2).then(ret=>{
-                                ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
-                                if(ret['data'].result === 'ok'){
-                                  datas.push(newData);
-
-                                  let payload = {
-                                    "username": userName,
-                                    "useremail": userEmail,
-                                    "symbol": newData['symbol'],
-                                    "symbolname": new Date().getTime().toString(),
-                                    "sector": newData['sector'],
-                                    "tradetiming": newData['tradetiming'],
-                                    "shortorlong": newData['shortorlong'],
-                                    "tradetimeframe": newData['tradetimeframe'],
-                                    "entryprice": newData['entryprice'],
-                                    "stoploss": newData['stoploss'],
-                                    "exitprice": newData['exitprice'],
-                                    "alertprice": newData['alertprice'],
-                                    "alertpricechange": newData['alertpricechange'],
-                                    "rewardprice": newData['rewardprice'],
-                                    "dateadded" : newData['dateadded'],
-                                    "comment" : newData['comment'],
-                                    "viewstatus" : "True",
-                                    "tradescore" : newData['tradescore'],
+                              if (newData['entrychange']===undefined)
+                              {
+                                newData['entrychange'] = 0;
+                              }
+                              if (newData['stoploss']===undefined)
+                              {
+                                newData['stoploss'] = 0;
+                              }
+                              if (newData['exitprice']===undefined)
+                              {
+                                newData['exitprice'] = 0;
+                              }
+                              if (newData['currentstockprice']===undefined)
+                              {
+                                newData['currentstockprice'] = 0;
+                              }
+                              if (newData['currentchange']===undefined)
+                              {
+                                newData['currentchange'] = 0;
+                              }
+                              if (newData['addedprice']===undefined)
+                              {
+                                newData['addedprice'] = 0;
+                              }
+                              if (newData['comment']===undefined)
+                              {
+                                newData['comment'] = "";
+                              }
+                              if (newData['earningdate'] === undefined)
+                              {
+                                newData['earningdate'] = "";
+                              }
+                              if (newData['alertpricechange'] === undefined)
+                              {
+                                newData['alertpricechange'] = 5.0;
+                              }
+                              if (newData['exitprice'] != 0){
+                                exitList.push({"symbol":newData['symbol'],"symbolname":newData['symbolname']});
+                              }
+                              let today = new Date();
+                              let dd = String(today.getDate()).padStart(2, '0');
+                              let mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+                              let yyyy = today.getFullYear();
+  
+                              today = mm + '/' + dd + '/' + yyyy;
+                              newData['dateadded'] = today;
+                              if (newData['exitprice'] != 0 && newData['stoploss'] !=0 && newData['entryprice']!=0){
+                                newData['rewardprice'] =(parseFloat(newData['exitprice']) - parseFloat(newData['entryprice'])) / (parseFloat(newData['entryprice']) - parseFloat(newData['stoploss'])) ;
+                                newData['rewardprice'] = newData['rewardprice'].toString().substring(0,4);
+                              }
+                              else{
+                                newData['rewardprice'] = 0;
+                              }
+                              // while(sectorvalue === "")
+                              // {
+                              //   return;
+                              // }
+                              newData['sector'] = sectorvalue;
+                              console.log("new data", newData);
+                              if (newData['symbol'] === undefined)
+                              {
+                                alert("No symbol. Please select the symbol...");
+                              }
+                              else{
+                                let payload2 = {
+                                  "username": userName,
+                                  "useremail": userEmail,
+                                  "userrole": userRole,
+                                }
+                                let token2 = jwt.encode(payload2, secret);
+                                payload2 = {"token": token2};      
+                                validwatchlist(payload2).then(ret=>{
+                                  ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+                                  if(ret['data'].result === 'ok'){
+                                    // datas.push(newData);
+  
+                                    let payload = {
+                                      "username": userName,
+                                      "useremail": userEmail,
+                                      "symbol": newData['symbol'],
+                                      "symbolname": new Date().getTime().toString(),
+                                      "sector": newData['sector'],
+                                      "tradetiming": newData['tradetiming'],
+                                      "shortorlong": newData['shortorlong'],
+                                      "tradetimeframe": newData['tradetimeframe'],
+                                      "entryprice": newData['entryprice'],
+                                      "stoploss": newData['stoploss'],
+                                      "exitprice": newData['exitprice'],
+                                      "alertprice": newData['alertprice'],
+                                      "alertpricechange": newData['alertpricechange'],
+                                      "rewardprice": newData['rewardprice'],
+                                      "dateadded" : newData['dateadded'],
+                                      "comment" : newData['comment'],
+                                      "viewstatus" : "True",
+                                      "tradescore" : newData['tradescore'],
+                                    }
+                                    symbolnamebuf = payload['symbolname'];
+                                    bufsymbol = payload['symbol'];
+                                    let token = jwt.encode(payload, secret);
+                                    payload = {"token": token};      
+                                    saveWatchlist(payload).then( ret=>{
+                                      ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
+                                      if (ret['data'].result === 'ok'){
+                                        setStatus((prevstatus)=>{
+                                          return !prevstatus;
+                                        });
+                                        // setSymbol((prevSymbol)=>{
+                                        //   const symboldata = [...prevSymbol];
+                                        //   symboldata.push({"symbol":bufsymbol, "symbolname":symbolnamebuf});
+                                        //   console.log("symboldatapush", symboldata);
+                                        //   return symboldata;
+                                        // });                        
+                                        setLoading(false);
+                                        // refreshPage();
+                                        // return  datas;
+                                      }
+                                      else if(ret['data'].result === 'fail'){
+                                        alert(ret['data'].message);
+                                      }
+                                      else {
+                                        alert(ret['data'].error);
+                                      }
+                                    }, err => {
+                                      alert(err.error);
+                                    });  
                                   }
-                                  let token = jwt.encode(payload, secret);
-                                  payload = {"token": token};      
-                                  saveWatchlist(payload).then( ret=>{
-                                    ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
-                                    if (ret['data'].result === 'ok'){
-                                      bufsymbol = newData['symbol'];
-                                      setStatus(()=>{
-                                        return !status;
-                                      });
-                                      setSymbol((prevSymbol)=>{
-                                        const symboldata = [...prevSymbol];
-                                        symboldata.push({"symbol":bufsymbol, "symbolname":newData['symbolname']});
-                                        return symboldata;
-                                      });                        
-                                      setLoading(false);
-                                      refreshPage();
-                                      return  datas;
-                                    }
-                                    else if(ret['data'].result === 'fail'){
-                                      alert(ret['data'].message);
-                                    }
-                                    else {
-                                      alert(ret['data'].error);
-                                    }
-                                  }, err => {
-                                    alert(err.error);
-                                  });  
-                                }
-                                else if(ret['data'].result === 'fail'){
-                                  alert(ret['data'].msg);
-                                }
-                                else {
-                                  alert(ret['data']['error']);
-                                }
-                              }, err=>{
-                                alert(err.error);
-                              })    
-                              setLoading(false);
-                              return datas;
-                            }
-                        });
+                                  // else if(ret['data'].result === 'fail'){
+                                  //   alert(ret['data'].msg);
+                                  // }
+                                  // else {
+                                  //   alert(ret['data']['error']);
+                                  // }
+                                }, err=>{
+                                  alert(err.error);
+                                })    
+                                setLoading(false);
+                                // return datas;
+                              }
+                          // });
+                          setSymbol((prevSymbol)=>{
+                            const symboldata = [...prevSymbol];
+                            symboldata.push({"symbol":bufsymbol, "symbolname":symbolnamebuf});
+                            console.log("symboldatapush", symboldata);
+                            return symboldata;
+                          });                        
+                          resolve();                        
                     }),
                     onRowUpdate: (newData, oldData) =>
                     new Promise((resolve) => {
@@ -864,8 +987,8 @@ const UserPageWidget = (props) => {
                         var jwt = require('jwt-simple');
                         let secret = "Hero-Hazan-Trading-Watchlist";  
                         if (oldData) {
-                            setState((prevState) => {
-                            const data = [...prevState];
+                            // setState((prevState) => {
+                            const data = [...state];
                             data[data.indexOf(oldData)] = newData;
                             console.log("oldData", oldData);
                             console.log("newData",newData);
@@ -910,8 +1033,10 @@ const UserPageWidget = (props) => {
                               if (ret['data'].result === 'ok'){
                                 console.log(ret['data']);
                                 setAlert("none", newData['symbol']);
-                                setStatus(!status);
-                                refreshPage();
+                                setStatus((prevstatus)=>{
+                                  return !prevstatus;
+                                });
+                                // refreshPage();
                               }
                               else if(ret['data'].result === 'fail'){
                                 alert(ret['data'].message);
@@ -922,8 +1047,8 @@ const UserPageWidget = (props) => {
                             }, err => {
                               alert(err.error);
                             });                                
-                            return data;
-                            });
+                            // return data;
+                            // });
                         }
                         else{
                             return "error";
@@ -933,12 +1058,13 @@ const UserPageWidget = (props) => {
                     onRowDelete: (oldData) =>
                     new Promise((resolve) => {
                         resolve();
+                        console.log("deleteolddata", oldData['tableData']['id'])
                         var jwt = require('jwt-simple');
                         let secret = "Hero-Hazan-Trading-Watchlist";  
                         setFirst(false);
-                        setState((prevState) => {
-                            const datas = [...prevState];                            
-                            datas.splice(data.indexOf(oldData), 1);
+                        // setState((prevState) => {
+                            // const datas = [...prevState];                            
+                            // datas.splice(data.indexOf(oldData), 1);
                             let payload = {
                               "username": userName,
                               "useremail": userEmail,
@@ -946,7 +1072,8 @@ const UserPageWidget = (props) => {
                               "symbolname" : oldData['symbolname'],
                               "tradetiming" : oldData['tradetiming'],
                               "shortorlong" : oldData['shortorlong'],
-                              "tradetimeframe" : oldData['tradetimeframe']
+                              "tradetimeframe" : oldData['tradetimeframe'],
+                              "index" : oldData['tableData']['id']
                             }
                             let token = jwt.encode(payload, secret);
                             payload = {"token": token};      
@@ -954,16 +1081,17 @@ const UserPageWidget = (props) => {
                               ret['data'] = jwt.decode(ret['data']['result'].substring(2,ret['data']['result'].length - 2), secret, true);  
                               if (ret['data'].result === 'ok'){
                                 console.log("deletewatchlist");
-                                setStatus(()=>{
-                                  return !status;
+                                setStatus((prev)=>{
+                                  console.log("prevstatus",prev);
+                                  return !prev;
                                 });
                                 setSymbol(()=>{
                                   let symboldata = [...symbol]
                                   symboldata.pop({"symbolname":oldData['symbolname']});
                                   return symboldata;
                                 });
-                                refreshPage();
-                                return datas ;
+                                // refreshPage();
+                                // return datas ;
                               }
                               else if(ret['data'].result === 'fail'){
                                 alert(ret['data'].message);
@@ -974,10 +1102,10 @@ const UserPageWidget = (props) => {
                             }, err => {
                               alert(err.error);
                             });                                
-                        });
+                        // });
                       }),
                 }}
-            />
+            />            
     );
 };
 
